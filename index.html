@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NaijaCV - Build Your Professional CV</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: Arial, sans-serif;
+      background: #f5f7fb;
+      color: #172033;
+      line-height: 1.6;
+    }
+
+    header {
+      background: white;
+      border-bottom: 1px solid #e5e7eb;
+      padding: 16px 20px;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    .nav {
+      max-width: 1100px;
+      margin: auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .logo {
+      font-size: 24px;
+      font-weight: 800;
+    }
+
+    .logo span {
+      color: #008753;
+    }
+
+    .nav-buttons {
+      display: flex;
+      gap: 10px;
+    }
+
+    button {
+      border: none;
+      border-radius: 8px;
+      padding: 11px 18px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .login {
+      background: transparent;
+      color: #172033;
+    }
+
+    .signup {
+      background: #008753;
+      color: white;
+    }
+
+    .hero {
+      max-width: 1100px;
+      margin: auto;
+      padding: 80px 20px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 50px;
+      align-items: center;
+    }
+
+    .hero h1 {
+      font-size: 52px;
+      line-height: 1.1;
+      margin-bottom: 20px;
+    }
+
+    .hero h1 span {
+      color: #008753;
+    }
+
+    .hero p {
+      font-size: 18px;
+      color: #5f6878;
+      margin-bottom: 30px;
+    }
+
+    .cta {
+      background: #008753;
+      color: white;
+      padding: 15px 24px;
+      font-size: 16px;
+    }
+
+    .preview {
+      background: white;
+      border-radius: 14px;
+      padding: 30px;
+      box-shadow: 0 15px 40px rgba(0,0,0,0.08);
+    }
+
+    .cv-preview {
+      border: 1px solid #ddd;
+      padding: 25px;
+      min-height: 300px;
+    }
+
+    .cv-preview h2 {
+      color: #008753;
+      margin-bottom: 5px;
+    }
+
+    .cv-line {
+      height: 10px;
+      background: #e5e7eb;
+      margin: 12px 0;
+      border-radius: 5px;
+    }
+
+    .features {
+      background: white;
+      padding: 70px 20px;
+    }
+
+    .features-container {
+      max-width: 1100px;
+      margin: auto;
+    }
+
+    .features h2 {
+      text-align: center;
+      font-size: 34px;
+      margin-bottom: 40px;
+    }
+
+    .feature-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+    }
+
+    .feature {
+      padding: 25px;
+      border: 1px solid #e5e7eb;
+      border-radius: 12px;
+      background: #fff;
+    }
+
+    .feature h3 {
+      margin-bottom: 10px;
+    }
+
+    .feature p {
+      color: #667085;
+    }
+
+    footer {
+      text-align: center;
+      padding: 30px 20px;
+      color: #667085;
+    }
+
+    @media (max-width: 750px) {
+      .hero {
+        grid-template-columns: 1fr;
+        padding: 50px 20px;
+      }
+
+      .hero h1 {
+        font-size: 40px;
+      }
+
+      .feature-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .nav-buttons .login {
+        display: none;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+<header>
+  <div class="nav">
+    <div class="logo">Naija<span>CV</span></div>
+
+    <div class="nav-buttons">
+      <button class="login">Log in</button>
+      <button class="signup">Sign up</button>
+    </div>
+  </div>
+</header>
+
+<section class="hero">
+
+  <div>
+    <h1>Build a <span>professional CV</span> that gets noticed.</h1>
+
+    <p>
+      Create, customize and download a professional CV
+      quickly and easily from your phone.
+    </p>
+
+    <button class="cta">Create My CV</button>
+  </div>
+
+  <div class="preview">
+    <div class="cv-preview">
+      <h2>YOUR NAME</h2>
+      <p>Professional Title</p>
+
+      <div class="cv-line"></div>
+      <div class="cv-line"></div>
+      <div class="cv-line"></div>
+
+      <h3>Experience</h3>
+      <div class="cv-line"></div>
+      <div class="cv-line"></div>
+
+      <h3>Education</h3>
+      <div class="cv-line"></div>
+    </div>
+  </div>
+
+</section>
+
+<section class="features">
+
+  <div class="features-container">
+
+    <h2>Everything you need to create your CV</h2>
+
+    <div class="feature-grid">
+
+      <div class="feature">
+        <h3>📝 Easy CV Builder</h3>
+        <p>
+          Enter your information step by step without
+          complicated software.
+        </p>
+      </div>
+
+      <div class="feature">
+        <h3>🎨 Professional Templates</h3>
+        <p>
+          Choose from clean and professional CV designs
+          suitable for different careers.
+        </p>
+      </div>
+
+      <div class="feature">
+        <h3>📄 PDF Download</h3>
+        <p>
+          Turn your finished CV into a professional
+          PDF ready for applications.
+        </p>
+      </div>
+
+    </div>
+
+  </div>
+
+</section>
+
+<footer>
+  © 2026 NaijaCV. Build your future.
+</footer>
+
+</body>
+</html>
