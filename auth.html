@@ -1,0 +1,661 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>NaijaCV - Login & Sign Up</title>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f7f5;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 430px;
+      background: white;
+      padding: 30px 25px;
+      border-radius: 18px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+    }
+
+    .logo {
+      text-align: center;
+      font-size: 30px;
+      font-weight: bold;
+      margin-bottom: 8px;
+    }
+
+    .logo span {
+      color: #00875a;
+    }
+
+    .subtitle {
+      text-align: center;
+      color: #666;
+      margin-bottom: 25px;
+    }
+
+    .tabs {
+      display: flex;
+      margin-bottom: 25px;
+      border-bottom: 1px solid #ddd;
+    }
+
+    .tab {
+      flex: 1;
+      padding: 12px;
+      border: none;
+      background: none;
+      font-size: 16px;
+      cursor: pointer;
+      color: #777;
+    }
+
+    .tab.active {
+      color: #00875a;
+      font-weight: bold;
+      border-bottom: 3px solid #00875a;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 7px;
+      font-weight: 600;
+      color: #333;
+    }
+
+    input {
+      width: 100%;
+      padding: 14px;
+      margin-bottom: 17px;
+      border: 1px solid #ddd;
+      border-radius: 9px;
+      font-size: 16px;
+      outline: none;
+    }
+
+    input:focus {
+      border-color: #00875a;
+    }
+
+    .main-button {
+      width: 100%;
+      padding: 14px;
+      border: none;
+      border-radius: 9px;
+      background: #00875a;
+      color: white;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .main-button:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    .message {
+      margin-top: 18px;
+      padding: 12px;
+      border-radius: 8px;
+      display: none;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    .success {
+      display: block;
+      background: #e8f7ef;
+      color: #146c43;
+    }
+
+    .error {
+      display: block;
+      background: #fdeaea;
+      color: #b42318;
+    }
+
+    .back {
+      display: block;
+      text-align: center;
+      margin-top: 20px;
+      color: #00875a;
+      text-decoration: none;
+    }
+
+    .back:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="container">
+
+    <div class="logo">
+      Naija<span>CV</span>
+    </div>
+
+    <p class="subtitle">
+      Create your professional CV
+    </p>
+
+    <div class="tabs">
+
+      <button
+        class="tab active"
+        id="loginTab"
+        onclick="showLogin()">
+        Login
+      </button>
+
+      <button
+        class="tab"
+        id="signupTab"
+        onclick="showSignup()">
+        Sign Up
+      </button>
+
+    </div>
+
+
+    <!-- ========================= -->
+    <!-- LOGIN FORM -->
+    <!-- ========================= -->
+
+    <form id="loginForm">
+
+      <label for="loginEmail">
+        Email
+      </label>
+
+      <input
+        type="email"
+        id="loginEmail"
+        placeholder="you@example.com"
+        required
+      >
+
+      <label for="loginPassword">
+        Password
+      </label>
+
+      <input
+        type="password"
+        id="loginPassword"
+        placeholder="Enter your password"
+        required
+      >
+
+      <button
+        class="main-button"
+        id="loginButton"
+        type="submit">
+        Login
+      </button>
+
+    </form>
+
+
+    <!-- ========================= -->
+    <!-- SIGN UP FORM -->
+    <!-- ========================= -->
+
+    <form
+      id="signupForm"
+      style="display: none;">
+
+      <label for="signupName">
+        Full Name
+      </label>
+
+      <input
+        type="text"
+        id="signupName"
+        placeholder="Your full name"
+        required
+      >
+
+      <label for="signupEmail">
+        Email
+      </label>
+
+      <input
+        type="email"
+        id="signupEmail"
+        placeholder="you@example.com"
+        required
+      >
+
+      <label for="signupPassword">
+        Password
+      </label>
+
+      <input
+        type="password"
+        id="signupPassword"
+        placeholder="Create a password"
+        minlength="6"
+        required
+      >
+
+      <button
+        class="main-button"
+        id="signupButton"
+        type="submit">
+        Create Account
+      </button>
+
+    </form>
+
+
+    <div
+      id="message"
+      class="message">
+    </div>
+
+
+    <a
+      href="index.html"
+      class="back">
+      ← Back to NaijaCV
+    </a>
+
+  </div>
+
+
+  <script>
+
+    // ==========================================
+    // SUPABASE CONFIGURATION
+    // ==========================================
+
+    const SUPABASE_URL =
+      "https://fjxrantbwlxypsyeaomi.supabase.co";
+
+    // Paste your NaijaCV PUBLISHABLE KEY below.
+    // Do NOT put your Secret key here.
+
+    const SUPABASE_KEY =
+      "sb_publishable_TMI7OchcG003ECClbiqwJQ_0OqyyFGc"
+
+    const { createClient } = supabase;
+
+    const supabaseClient =
+      createClient(
+        SUPABASE_URL,
+        SUPABASE_KEY
+      );
+
+
+    // ==========================================
+    // SHOW LOGIN
+    // ==========================================
+
+    function showLogin() {
+
+      document.getElementById("loginForm").style.display =
+        "block";
+
+      document.getElementById("signupForm").style.display =
+        "none";
+
+      document.getElementById("loginTab").classList.add("active");
+
+      document.getElementById("signupTab").classList.remove("active");
+
+      clearMessage();
+    }
+
+
+    // ==========================================
+    // SHOW SIGN UP
+    // ==========================================
+
+    function showSignup() {
+
+      document.getElementById("loginForm").style.display =
+        "none";
+
+      document.getElementById("signupForm").style.display =
+        "block";
+
+      document.getElementById("signupTab").classList.add("active");
+
+      document.getElementById("loginTab").classList.remove("active");
+
+      clearMessage();
+    }
+
+
+    // ==========================================
+    // SHOW MESSAGE
+    // ==========================================
+
+    function showMessage(text, type) {
+
+      const message =
+        document.getElementById("message");
+
+      message.textContent = text;
+
+      message.className =
+        "message " + type;
+    }
+
+
+    // ==========================================
+    // CLEAR MESSAGE
+    // ==========================================
+
+    function clearMessage() {
+
+      const message =
+        document.getElementById("message");
+
+      message.textContent = "";
+
+      message.className = "message";
+    }
+
+
+    // ==========================================
+    // SIGN UP
+    // ==========================================
+
+    document
+      .getElementById("signupForm")
+      .addEventListener("submit", async function(e) {
+
+        e.preventDefault();
+
+
+        const name =
+          document
+            .getElementById("signupName")
+            .value
+            .trim();
+
+
+        const email =
+          document
+            .getElementById("signupEmail")
+            .value
+            .trim();
+
+
+        const password =
+          document
+            .getElementById("signupPassword")
+            .value;
+
+
+        const button =
+          document.getElementById("signupButton");
+
+
+        button.disabled = true;
+
+        button.textContent =
+          "Creating Account...";
+
+
+        showMessage(
+          "Creating your account...",
+          "success"
+        );
+
+
+        try {
+
+          const { data, error } =
+            await supabaseClient.auth.signUp({
+
+              email: email,
+
+              password: password
+
+            });
+
+
+          if (error) {
+
+            showMessage(
+              error.message,
+              "error"
+            );
+
+            button.disabled = false;
+
+            button.textContent =
+              "Create Account";
+
+            return;
+          }
+
+
+          // =====================================
+          // SESSION CREATED IMMEDIATELY
+          // =====================================
+
+          if (data.session && data.user) {
+
+            await supabaseClient
+              .from("profiles")
+              .upsert({
+
+                id: data.user.id,
+
+                full_name: name
+
+              });
+
+
+            showMessage(
+              "Account created successfully! Redirecting...",
+              "success"
+            );
+
+
+            setTimeout(function() {
+
+              window.location.href =
+                "builder.html";
+
+            }, 1200);
+
+
+          } else {
+
+            // =================================
+            // EMAIL CONFIRMATION REQUIRED
+            // =================================
+
+            showMessage(
+              "Account created! Please check your email to confirm your account, then log in.",
+              "success"
+            );
+
+
+            button.disabled = false;
+
+            button.textContent =
+              "Create Account";
+          }
+
+
+        } catch (error) {
+
+          showMessage(
+            "Something went wrong. Please try again.",
+            "error"
+          );
+
+
+          button.disabled = false;
+
+          button.textContent =
+            "Create Account";
+        }
+
+      });
+
+
+    // ==========================================
+    // LOGIN
+    // ==========================================
+
+    document
+      .getElementById("loginForm")
+      .addEventListener("submit", async function(e) {
+
+        e.preventDefault();
+
+
+        const email =
+          document
+            .getElementById("loginEmail")
+            .value
+            .trim();
+
+
+        const password =
+          document
+            .getElementById("loginPassword")
+            .value;
+
+
+        const button =
+          document.getElementById("loginButton");
+
+
+        button.disabled = true;
+
+        button.textContent =
+          "Logging In...";
+
+
+        showMessage(
+          "Logging in...",
+          "success"
+        );
+
+
+        try {
+
+          const { data, error } =
+            await supabaseClient.auth
+              .signInWithPassword({
+
+                email: email,
+
+                password: password
+
+              });
+
+
+          if (error) {
+
+            showMessage(
+              error.message,
+              "error"
+            );
+
+
+            button.disabled = false;
+
+            button.textContent =
+              "Login";
+
+            return;
+          }
+
+
+          // =====================================
+          // CREATE/UPDATE PROFILE
+          // =====================================
+
+          if (data.user) {
+
+            await supabaseClient
+              .from("profiles")
+              .upsert({
+
+                id: data.user.id
+
+              });
+
+          }
+
+
+          showMessage(
+            "Login successful! Redirecting...",
+            "success"
+          );
+
+
+          setTimeout(function() {
+
+            window.location.href =
+              "builder.html";
+
+          }, 1000);
+
+
+        } catch (error) {
+
+          showMessage(
+            "Something went wrong. Please try again.",
+            "error"
+          );
+
+
+          button.disabled = false;
+
+          button.textContent =
+            "Login";
+        }
+
+      });
+
+
+    // ==========================================
+    // CHECK URL FOR SIGN-UP MODE
+    // ==========================================
+
+    const params =
+      new URLSearchParams(
+        window.location.search
+      );
+
+
+    if (
+      params.get("mode") === "signup"
+    ) {
+
+      showSignup();
+
+    }
+
+  </script>
+
+</body>
+</html>
