@@ -1,0 +1,1203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>NaijaCV - CV Builder</title>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f7f5;
+      color: #222;
+    }
+
+    header {
+      background: white;
+      border-bottom: 1px solid #e5e5e5;
+      padding: 15px 20px;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    .header-inner {
+      max-width: 1200px;
+      margin: auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 15px;
+    }
+
+    .logo {
+      font-size: 26px;
+      font-weight: bold;
+    }
+
+    .logo span {
+      color: #00875a;
+    }
+
+    .user-area {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .user-email {
+      font-size: 13px;
+      color: #666;
+    }
+
+    .logout {
+      border: none;
+      background: #eee;
+      padding: 9px 13px;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
+    .page {
+      max-width: 1200px;
+      margin: 25px auto;
+      padding: 0 15px;
+    }
+
+    .top-title {
+      margin-bottom: 20px;
+    }
+
+    .top-title h1 {
+      font-size: 28px;
+      margin-bottom: 6px;
+    }
+
+    .top-title p {
+      color: #666;
+    }
+
+    .status {
+      padding: 12px 15px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      display: none;
+      line-height: 1.5;
+    }
+
+    .success {
+      display: block;
+      background: #e8f7ef;
+      color: #146c43;
+    }
+
+    .error {
+      display: block;
+      background: #fdeaea;
+      color: #b42318;
+    }
+
+    .builder {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 25px;
+      align-items: start;
+    }
+
+    .panel {
+      background: white;
+      border-radius: 15px;
+      padding: 22px;
+      box-shadow: 0 5px 20px rgba(0,0,0,0.06);
+    }
+
+    .panel h2 {
+      margin-bottom: 18px;
+      font-size: 20px;
+    }
+
+    .field {
+      margin-bottom: 16px;
+    }
+
+    label {
+      display: block;
+      font-weight: 600;
+      margin-bottom: 7px;
+      color: #333;
+    }
+
+    input,
+    textarea {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      font-size: 15px;
+      font-family: inherit;
+      outline: none;
+    }
+
+    input:focus,
+    textarea:focus {
+      border-color: #00875a;
+    }
+
+    textarea {
+      min-height: 100px;
+      resize: vertical;
+    }
+
+    .button-row {
+      display: flex;
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    .save-button {
+      flex: 1;
+      border: none;
+      background: #00875a;
+      color: white;
+      padding: 14px;
+      border-radius: 9px;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .save-button:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    .clear-button {
+      border: none;
+      background: #eee;
+      padding: 14px 18px;
+      border-radius: 9px;
+      cursor: pointer;
+    }
+
+    /* CV PREVIEW */
+
+    .preview-wrapper {
+      position: sticky;
+      top: 90px;
+    }
+
+    .cv-preview {
+      background: white;
+      min-height: 850px;
+      padding: 45px;
+      box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+    }
+
+    .cv-header {
+      border-bottom: 2px solid #222;
+      padding-bottom: 18px;
+      margin-bottom: 22px;
+    }
+
+    .cv-name {
+      font-size: 30px;
+      font-weight: bold;
+      margin-bottom: 5px;
+    }
+
+    .cv-title {
+      font-size: 17px;
+      color: #00875a;
+      margin-bottom: 10px;
+    }
+
+    .contact {
+      color: #555;
+      font-size: 13px;
+      line-height: 1.7;
+    }
+
+    .cv-section {
+      margin-bottom: 22px;
+    }
+
+    .cv-section h3 {
+      font-size: 15px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      border-bottom: 1px solid #ddd;
+      padding-bottom: 6px;
+      margin-bottom: 10px;
+    }
+
+    .cv-section p {
+      font-size: 14px;
+      line-height: 1.6;
+      white-space: pre-line;
+    }
+
+    .empty-message {
+      color: #999;
+      font-style: italic;
+    }
+
+    .saved-info {
+      margin-top: 15px;
+      font-size: 13px;
+      color: #666;
+      text-align: center;
+    }
+
+    @media (max-width: 850px) {
+
+      .builder {
+        grid-template-columns: 1fr;
+      }
+
+      .preview-wrapper {
+        position: static;
+      }
+
+      .cv-preview {
+        min-height: auto;
+        padding: 30px 22px;
+      }
+
+      .user-email {
+        display: none;
+      }
+    }
+
+    @media (max-width: 500px) {
+
+      .page {
+        padding: 0 10px;
+      }
+
+      .panel {
+        padding: 17px;
+      }
+
+      .cv-name {
+        font-size: 24px;
+      }
+
+      .button-row {
+        flex-direction: column;
+      }
+
+      .clear-button {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+<header>
+  <div class="header-inner">
+
+    <div class="logo">
+      Naija<span>CV</span>
+    </div>
+
+    <div class="user-area">
+
+      <span
+        class="user-email"
+        id="userEmail">
+        Checking account...
+      </span>
+
+      <button
+        class="logout"
+        onclick="logout()">
+        Logout
+      </button>
+
+    </div>
+
+  </div>
+</header>
+
+
+<div class="page">
+
+  <div class="top-title">
+
+    <h1>Build Your CV</h1>
+
+    <p>
+      Enter your information and save your professional CV.
+    </p>
+
+  </div>
+
+
+  <div
+    id="status"
+    class="status">
+  </div>
+
+
+  <div class="builder">
+
+
+    <!-- ================================= -->
+    <!-- FORM -->
+    <!-- ================================= -->
+
+    <div class="panel">
+
+      <h2>Personal Information</h2>
+
+
+      <div class="field">
+
+        <label for="fullName">
+          Full Name
+        </label>
+
+        <input
+          type="text"
+          id="fullName"
+          placeholder="John Doe"
+          oninput="updateCV()">
+
+      </div>
+
+
+      <div class="field">
+
+        <label for="professionalTitle">
+          Professional Title
+        </label>
+
+        <input
+          type="text"
+          id="professionalTitle"
+          placeholder="Software Developer"
+          oninput="updateCV()">
+
+      </div>
+
+
+      <div class="field">
+
+        <label for="email">
+          Email
+        </label>
+
+        <input
+          type="email"
+          id="email"
+          placeholder="you@example.com"
+          oninput="updateCV()">
+
+      </div>
+
+
+      <div class="field">
+
+        <label for="phone">
+          Phone Number
+        </label>
+
+        <input
+          type="text"
+          id="phone"
+          placeholder="+234 800 000 0000"
+          oninput="updateCV()">
+
+      </div>
+
+
+      <div class="field">
+
+        <label for="location">
+          Location
+        </label>
+
+        <input
+          type="text"
+          id="location"
+          placeholder="Abuja, Nigeria"
+          oninput="updateCV()">
+
+      </div>
+
+
+      <div class="field">
+
+        <label for="summary">
+          Professional Summary
+        </label>
+
+        <textarea
+          id="summary"
+          placeholder="Write a short professional summary..."
+          oninput="updateCV()"></textarea>
+
+      </div>
+
+
+      <h2>
+        Education
+      </h2>
+
+
+      <div class="field">
+
+        <label for="education">
+          Education Details
+        </label>
+
+        <textarea
+          id="education"
+          placeholder="School name, qualification, course and years..."
+          oninput="updateCV()"></textarea>
+
+      </div>
+
+
+      <h2>
+        Work Experience
+      </h2>
+
+
+      <div class="field">
+
+        <label for="experience">
+          Experience Details
+        </label>
+
+        <textarea
+          id="experience"
+          placeholder="Job title, company, responsibilities and dates..."
+          oninput="updateCV()"></textarea>
+
+      </div>
+
+
+      <h2>
+        Skills
+      </h2>
+
+
+      <div class="field">
+
+        <label for="skills">
+          Skills
+        </label>
+
+        <textarea
+          id="skills"
+          placeholder="Communication, Microsoft Office, Leadership..."
+          oninput="updateCV()"></textarea>
+
+      </div>
+
+
+      <div class="button-row">
+
+        <button
+          class="save-button"
+          id="saveButton"
+          onclick="saveCV()">
+          Save CV
+        </button>
+
+        <button
+          class="clear-button"
+          onclick="clearForm()">
+          Clear
+        </button>
+
+      </div>
+
+
+      <div
+        class="saved-info"
+        id="savedInfo">
+        Your CV will be saved to your account.
+      </div>
+
+    </div>
+
+
+    <!-- ================================= -->
+    <!-- LIVE PREVIEW -->
+    <!-- ================================= -->
+
+    <div class="preview-wrapper">
+
+      <div class="panel">
+
+        <h2>
+          Live Preview
+        </h2>
+
+
+        <div
+          class="cv-preview"
+          id="cvPreview">
+
+
+          <div class="cv-header">
+
+            <div
+              class="cv-name"
+              id="previewName">
+              Your Name
+            </div>
+
+            <div
+              class="cv-title"
+              id="previewTitle">
+              Professional Title
+            </div>
+
+            <div
+              class="contact"
+              id="previewContact">
+              Email • Phone • Location
+            </div>
+
+          </div>
+
+
+          <div class="cv-section">
+
+            <h3>
+              Profile
+            </h3>
+
+            <p
+              id="previewSummary"
+              class="empty-message">
+              Your professional summary will appear here.
+            </p>
+
+          </div>
+
+
+          <div class="cv-section">
+
+            <h3>
+              Education
+            </h3>
+
+            <p
+              id="previewEducation"
+              class="empty-message">
+              Your education details will appear here.
+            </p>
+
+          </div>
+
+
+          <div class="cv-section">
+
+            <h3>
+              Experience
+            </h3>
+
+            <p
+              id="previewExperience"
+              class="empty-message">
+              Your work experience will appear here.
+            </p>
+
+          </div>
+
+
+          <div class="cv-section">
+
+            <h3>
+              Skills
+            </h3>
+
+            <p
+              id="previewSkills"
+              class="empty-message">
+              Your skills will appear here.
+            </p>
+
+          </div>
+
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</div>
+
+
+<script>
+
+  // ==========================================
+  // SUPABASE CONFIGURATION
+  // ==========================================
+
+  const SUPABASE_URL =
+    "https://fjxrantbwlxypsyeaomi.supabase.co";
+
+
+  // IMPORTANT:
+  // Paste the SAME PUBLISHABLE KEY you used
+  // in auth.html.
+
+  const SUPABASE_KEY =
+    "YOUR_SUPABASE_PUBLISHABLE_KEY";
+
+
+  const { createClient } = supabase;
+
+
+  const supabaseClient =
+    createClient(
+      SUPABASE_URL,
+      SUPABASE_KEY
+    );
+
+
+  // ==========================================
+  // CURRENT USER
+  // ==========================================
+
+  let currentUser = null;
+
+  let currentCVId = null;
+
+
+  // ==========================================
+  // CHECK LOGIN
+  // ==========================================
+
+  async function checkUser() {
+
+    const {
+      data,
+      error
+    } =
+      await supabaseClient.auth.getUser();
+
+
+    if (
+      error ||
+      !data.user
+    ) {
+
+      window.location.href =
+        "auth.html?mode=login";
+
+      return;
+
+    }
+
+
+    currentUser =
+      data.user;
+
+
+    document.getElementById("userEmail")
+      .textContent =
+      currentUser.email;
+
+
+    // Make sure profile exists
+
+    await supabaseClient
+      .from("profiles")
+      .upsert({
+
+        id: currentUser.id
+
+      });
+
+
+    // Load previously saved CV
+
+    await loadCV();
+
+  }
+
+
+  // ==========================================
+  // LOAD SAVED CV
+  // ==========================================
+
+  async function loadCV() {
+
+    const {
+      data,
+      error
+    } =
+      await supabaseClient
+        .from("cvs")
+        .select("*")
+        .eq("user_id", currentUser.id)
+        .order(
+          "updated_at",
+          {
+            ascending: false
+          }
+        )
+        .limit(1);
+
+
+    if (error) {
+
+      console.log(error);
+
+      return;
+
+    }
+
+
+    if (
+      data &&
+      data.length > 0
+    ) {
+
+      const cv =
+        data[0];
+
+
+      currentCVId =
+        cv.id;
+
+
+      document.getElementById("fullName").value =
+        cv.full_name || "";
+
+
+      document.getElementById("professionalTitle").value =
+        cv.professional_title || "";
+
+
+      document.getElementById("email").value =
+        cv.email || "";
+
+
+      document.getElementById("phone").value =
+        cv.phone || "";
+
+
+      document.getElementById("location").value =
+        cv.location || "";
+
+
+      document.getElementById("summary").value =
+        cv.summary || "";
+
+
+      updateCV();
+
+
+      document.getElementById("savedInfo")
+        .textContent =
+        "Your saved CV has been loaded.";
+
+    }
+
+  }
+
+
+  // ==========================================
+  // LIVE CV PREVIEW
+  // ==========================================
+
+  function updateCV() {
+
+    const name =
+      document.getElementById("fullName").value.trim();
+
+
+    const title =
+      document.getElementById("professionalTitle").value.trim();
+
+
+    const email =
+      document.getElementById("email").value.trim();
+
+
+    const phone =
+      document.getElementById("phone").value.trim();
+
+
+    const location =
+      document.getElementById("location").value.trim();
+
+
+    const summary =
+      document.getElementById("summary").value.trim();
+
+
+    const education =
+      document.getElementById("education").value.trim();
+
+
+    const experience =
+      document.getElementById("experience").value.trim();
+
+
+    const skills =
+      document.getElementById("skills").value.trim();
+
+
+    document.getElementById("previewName")
+      .textContent =
+      name || "Your Name";
+
+
+    document.getElementById("previewTitle")
+      .textContent =
+      title || "Professional Title";
+
+
+    const contactParts =
+      [
+        email,
+        phone,
+        location
+      ].filter(Boolean);
+
+
+    document.getElementById("previewContact")
+      .textContent =
+      contactParts.length
+        ? contactParts.join(" • ")
+        : "Email • Phone • Location";
+
+
+    setPreview(
+      "previewSummary",
+      summary,
+      "Your professional summary will appear here."
+    );
+
+
+    setPreview(
+      "previewEducation",
+      education,
+      "Your education details will appear here."
+    );
+
+
+    setPreview(
+      "previewExperience",
+      experience,
+      "Your work experience will appear here."
+    );
+
+
+    setPreview(
+      "previewSkills",
+      skills,
+      "Your skills will appear here."
+    );
+
+  }
+
+
+  function setPreview(
+    id,
+    value,
+    placeholder
+  ) {
+
+    const element =
+      document.getElementById(id);
+
+
+    if (value) {
+
+      element.textContent =
+        value;
+
+      element.classList.remove(
+        "empty-message"
+      );
+
+    } else {
+
+      element.textContent =
+        placeholder;
+
+      element.classList.add(
+        "empty-message"
+      );
+
+    }
+
+  }
+
+
+  // ==========================================
+  // SAVE CV
+  // ==========================================
+
+  async function saveCV() {
+
+    if (!currentUser) {
+
+      showStatus(
+        "You must be logged in to save your CV.",
+        "error"
+      );
+
+      return;
+
+    }
+
+
+    const button =
+      document.getElementById("saveButton");
+
+
+    button.disabled = true;
+
+    button.textContent =
+      "Saving...";
+
+
+    const cvData = {
+
+      user_id:
+        currentUser.id,
+
+      title:
+        "My CV",
+
+      template:
+        "classic",
+
+      full_name:
+        document.getElementById("fullName").value.trim(),
+
+      professional_title:
+        document.getElementById("professionalTitle").value.trim(),
+
+      email:
+        document.getElementById("email").value.trim(),
+
+      phone:
+        document.getElementById("phone").value.trim(),
+
+      location:
+        document.getElementById("location").value.trim(),
+
+      summary:
+        document.getElementById("summary").value.trim(),
+
+      updated_at:
+        new Date().toISOString()
+
+    };
+
+
+    try {
+
+      let result;
+
+
+      // =====================================
+      // UPDATE EXISTING CV
+      // =====================================
+
+      if (currentCVId) {
+
+        result =
+          await supabaseClient
+            .from("cvs")
+            .update(cvData)
+            .eq(
+              "id",
+              currentCVId
+            )
+            .eq(
+              "user_id",
+              currentUser.id
+            )
+            .select()
+            .single();
+
+
+      }
+
+      // =====================================
+      // CREATE NEW CV
+      // =====================================
+
+      else {
+
+        result =
+          await supabaseClient
+            .from("cvs")
+            .insert(cvData)
+            .select()
+            .single();
+
+      }
+
+
+      if (result.error) {
+
+        throw result.error;
+
+      }
+
+
+      if (result.data) {
+
+        currentCVId =
+          result.data.id;
+
+      }
+
+
+      showStatus(
+        "Your CV has been saved successfully.",
+        "success"
+      );
+
+
+      document.getElementById("savedInfo")
+        .textContent =
+        "Last saved: " +
+        new Date().toLocaleString();
+
+
+    } catch (error) {
+
+      console.error(error);
+
+
+      showStatus(
+        "Could not save your CV: " +
+        error.message,
+        "error"
+      );
+
+    }
+
+
+    button.disabled = false;
+
+    button.textContent =
+      "Save CV";
+
+  }
+
+
+  // ==========================================
+  // STATUS MESSAGE
+  // ==========================================
+
+  function showStatus(
+    message,
+    type
+  ) {
+
+    const status =
+      document.getElementById("status");
+
+
+    status.textContent =
+      message;
+
+
+    status.className =
+      "status " + type;
+
+
+    setTimeout(function() {
+
+      status.className =
+        "status";
+
+    }, 5000);
+
+  }
+
+
+  // ==========================================
+  // CLEAR FORM
+  // ==========================================
+
+  function clearForm() {
+
+    if (
+      !confirm(
+        "Clear all information from the form?"
+      )
+    ) {
+
+      return;
+
+    }
+
+
+    document.getElementById("fullName").value = "";
+
+    document.getElementById("professionalTitle").value = "";
+
+    document.getElementById("email").value = "";
+
+    document.getElementById("phone").value = "";
+
+    document.getElementById("location").value = "";
+
+    document.getElementById("summary").value = "";
+
+    document.getElementById("education").value = "";
+
+    document.getElementById("experience").value = "";
+
+    document.getElementById("skills").value = "";
+
+
+    updateCV();
+
+  }
+
+
+  // ==========================================
+  // LOGOUT
+  // ==========================================
+
+  async function logout() {
+
+    await supabaseClient.auth.signOut();
+
+    window.location.href =
+      "index.html";
+
+  }
+
+
+  // ==========================================
+  // START
+  // ==========================================
+
+  checkUser();
+
+</script>
+
+</body>
+</html>
