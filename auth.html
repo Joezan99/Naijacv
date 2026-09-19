@@ -1,0 +1,791 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>NaijaCV - Authentication</title>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: Arial, sans-serif;
+      background: #f4f6f8;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 430px;
+    }
+
+    .logo {
+      text-align: center;
+      color: #008751;
+      font-size: 30px;
+      font-weight: bold;
+      margin-bottom: 20px;
+    }
+
+    .card {
+      background: white;
+      padding: 28px;
+      border-radius: 12px;
+      box-shadow: 0 3px 15px rgba(0,0,0,0.08);
+    }
+
+    h1 {
+      margin: 0 0 8px;
+      text-align: center;
+    }
+
+    .subtitle {
+      text-align: center;
+      color: #666;
+      font-size: 14px;
+      line-height: 1.5;
+      margin-bottom: 25px;
+    }
+
+    label {
+      display: block;
+      font-weight: bold;
+      margin-top: 15px;
+      margin-bottom: 6px;
+    }
+
+    input {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #ccc;
+      border-radius: 7px;
+      font-size: 15px;
+    }
+
+    button {
+      width: 100%;
+      padding: 13px;
+      margin-top: 20px;
+      border: none;
+      border-radius: 7px;
+      background: #008751;
+      color: white;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    button:disabled {
+      opacity: 0.6;
+    }
+
+    .status {
+      margin-top: 15px;
+      padding: 12px;
+      border-radius: 7px;
+      font-size: 14px;
+      line-height: 1.5;
+      display: none;
+      word-break: break-word;
+    }
+
+    .success {
+      display: block;
+      background: #e8f7ef;
+      color: #08753f;
+    }
+
+    .error {
+      display: block;
+      background: #fdecec;
+      color: #a00000;
+    }
+
+    .info {
+      display: block;
+      background: #eef5ff;
+      color: #174a8b;
+    }
+
+    .switch {
+      text-align: center;
+      margin-top: 18px;
+      font-size: 14px;
+      color: #666;
+    }
+
+    .switch a {
+      color: #008751;
+      font-weight: bold;
+      text-decoration: none;
+    }
+
+    .back {
+      text-align: center;
+      margin-top: 20px;
+    }
+
+    .back a {
+      color: #555;
+      text-decoration: none;
+      font-size: 14px;
+    }
+
+    .debug {
+      margin-top: 20px;
+      padding: 10px;
+      background: #f1f1f1;
+      border-radius: 7px;
+      font-size: 11px;
+      color: #555;
+      word-break: break-word;
+    }
+
+    .hidden {
+      display: none;
+    }
+  </style>
+</head>
+
+<body>
+
+<div class="container">
+
+  <div class="logo">
+    NaijaCV
+  </div>
+
+  <div class="card">
+
+    <h1 id="formTitle">Login</h1>
+
+    <div id="formSubtitle" class="subtitle">
+      Log in to continue building your CV.
+    </div>
+
+    <div id="nameGroup" class="hidden">
+
+      <label for="name">
+        Full Name
+      </label>
+
+      <input
+        id="name"
+        type="text"
+        placeholder="Your full name"
+      >
+
+    </div>
+
+    <label for="email">
+      Email Address
+    </label>
+
+    <input
+      id="email"
+      type="email"
+      placeholder="you@example.com"
+      autocomplete="email"
+    >
+
+    <label for="password">
+      Password
+    </label>
+
+    <input
+      id="password"
+      type="password"
+      placeholder="At least 6 characters"
+      autocomplete="current-password"
+    >
+
+    <button id="submitButton">
+      Login
+    </button>
+
+    <div id="status" class="status"></div>
+
+    <div class="switch">
+
+      <span id="switchText">
+        Don't have an account?
+      </span>
+
+      <a
+        id="switchLink"
+        href="auth.html?mode=signup"
+      >
+        Sign Up
+      </a>
+
+    </div>
+
+    <div class="back">
+      <a href="index.html">
+        ← Back to NaijaCV
+      </a>
+    </div>
+
+    <div id="debug" class="debug">
+      Starting NaijaCV authentication...
+    </div>
+
+  </div>
+
+</div>
+
+
+<script>
+
+  /* =========================================
+     SUPABASE CONFIGURATION
+     ========================================= */
+
+  const SUPABASE_URL =
+    "https://wkkekfrfuuhsmifgddqr.supabase.co";
+
+  /*
+     IMPORTANT:
+     Replace the text below with your actual
+     SUPABASE PUBLISHABLE KEY.
+  */
+
+  const SUPABASE_KEY =
+    "sb_publishable_X0hCcFAvsC6rlepbtgxhig_hcXMtPyA";
+
+
+  const SITE_URL =
+    "https://joezan99.github.io/Naijacv/";
+
+  const BUILDER_URL =
+    SITE_URL + "builder-v2.html";
+
+
+  /* =========================================
+     ELEMENTS
+     ========================================= */
+
+  const statusBox =
+    document.getElementById("status");
+
+  const debugBox =
+    document.getElementById("debug");
+
+  const button =
+    document.getElementById("submitButton");
+
+
+  /* =========================================
+     DEBUG MESSAGE
+     ========================================= */
+
+  function debug(message) {
+
+    debugBox.textContent =
+      message;
+
+    console.log(message);
+  }
+
+
+  /* =========================================
+     STATUS MESSAGE
+     ========================================= */
+
+  function showStatus(message, type) {
+
+    statusBox.textContent =
+      message;
+
+    statusBox.className =
+      "status " + type;
+  }
+
+
+  /* =========================================
+     CHECK SUPABASE LIBRARY
+     ========================================= */
+
+  if (!window.supabase) {
+
+    showStatus(
+      "Supabase library failed to load. Check your internet connection and try again.",
+      "error"
+    );
+
+    debug(
+      "ERROR: window.supabase is not available."
+    );
+
+  } else {
+
+    debug(
+      "Supabase library loaded successfully."
+    );
+
+  }
+
+
+  /* =========================================
+     CREATE SUPABASE CLIENT
+     ========================================= */
+
+  let supabaseClient = null;
+
+  try {
+
+    if (
+      window.supabase &&
+      SUPABASE_KEY !==
+      "YOUR_SUPABASE_PUBLISHABLE_KEY"
+    ) {
+
+      supabaseClient =
+        window.supabase.createClient(
+          SUPABASE_URL,
+          SUPABASE_KEY
+        );
+
+      debug(
+        "Supabase client created successfully."
+      );
+
+    } else {
+
+      debug(
+        "WARNING: Supabase Publishable Key has not been inserted."
+      );
+
+    }
+
+  } catch (error) {
+
+    console.error(error);
+
+    showStatus(
+      "Supabase could not be initialized: " +
+      error.message,
+      "error"
+    );
+
+    debug(
+      "SUPABASE INITIALIZATION ERROR: " +
+      error.message
+    );
+
+  }
+
+
+  /* =========================================
+     CHECK SIGNUP MODE
+     ========================================= */
+
+  const params =
+    new URLSearchParams(
+      window.location.search
+    );
+
+  const signupMode =
+    params.get("mode") === "signup";
+
+
+  /* =========================================
+     CHANGE PAGE FOR SIGNUP
+     ========================================= */
+
+  if (signupMode) {
+
+    document.getElementById(
+      "formTitle"
+    ).textContent =
+      "Create Account";
+
+    document.getElementById(
+      "formSubtitle"
+    ).textContent =
+      "Create your NaijaCV account and start building your CV.";
+
+    document.getElementById(
+      "nameGroup"
+    ).classList.remove("hidden");
+
+    button.textContent =
+      "Create Account";
+
+    document.getElementById(
+      "switchText"
+    ).textContent =
+      "Already have an account?";
+
+    const switchLink =
+      document.getElementById(
+        "switchLink"
+      );
+
+    switchLink.textContent =
+      "Login";
+
+    switchLink.href =
+      "auth.html?mode=login";
+  }
+
+
+  /* =========================================
+     AUTHENTICATION FUNCTION
+     ========================================= */
+
+  async function submitForm() {
+
+    debug(
+      "Button pressed. Starting authentication..."
+    );
+
+    showStatus(
+      "Connecting to Supabase...",
+      "info"
+    );
+
+    const email =
+      document.getElementById(
+        "email"
+      ).value.trim();
+
+    const password =
+      document.getElementById(
+        "password"
+      ).value;
+
+    const name =
+      document.getElementById(
+        "name"
+      ).value.trim();
+
+
+    /* Check client */
+
+    if (!supabaseClient) {
+
+      showStatus(
+        "Supabase is not connected. Please check that the correct Publishable key is in auth.html.",
+        "error"
+      );
+
+      debug(
+        "ERROR: supabaseClient is null."
+      );
+
+      return;
+    }
+
+
+    /* Check email */
+
+    if (!email) {
+
+      showStatus(
+        "Please enter your email address.",
+        "error"
+      );
+
+      return;
+    }
+
+
+    /* Check password */
+
+    if (!password) {
+
+      showStatus(
+        "Please enter your password.",
+        "error"
+      );
+
+      return;
+    }
+
+
+    if (
+      signupMode &&
+      password.length < 6
+    ) {
+
+      showStatus(
+        "Password must be at least 6 characters.",
+        "error"
+      );
+
+      return;
+    }
+
+
+    if (
+      signupMode &&
+      !name
+    ) {
+
+      showStatus(
+        "Please enter your full name.",
+        "error"
+      );
+
+      return;
+    }
+
+
+    button.disabled = true;
+
+    button.textContent =
+      signupMode
+        ? "Creating Account..."
+        : "Logging In...";
+
+
+    try {
+
+
+      /* =====================================
+         SIGN UP
+         ===================================== */
+
+      if (signupMode) {
+
+        debug(
+          "Sending signup request to Supabase..."
+        );
+
+        const result =
+          await supabaseClient.auth.signUp({
+
+            email: email,
+
+            password: password,
+
+            options: {
+
+              data: {
+                full_name: name
+              }
+
+            }
+
+          });
+
+
+        console.log(
+          "SIGNUP RESULT:",
+          result
+        );
+
+
+        if (result.error) {
+
+          throw result.error;
+        }
+
+
+        if (
+          !result.data ||
+          !result.data.user
+        ) {
+
+          throw new Error(
+            "Supabase did not return a user."
+          );
+
+        }
+
+
+        debug(
+          "Account created. Creating profile..."
+        );
+
+
+        const profileResult =
+          await supabaseClient
+            .from("profiles")
+            .upsert({
+
+              id:
+                result.data.user.id,
+
+              full_name:
+                name
+
+            });
+
+
+        console.log(
+          "PROFILE RESULT:",
+          profileResult
+        );
+
+
+        debug(
+          "Account setup complete. Opening CV Builder..."
+        );
+
+
+        showStatus(
+          "Account created successfully! Opening your CV Builder...",
+          "success"
+        );
+
+
+        setTimeout(function() {
+
+          window.location.href =
+            BUILDER_URL;
+
+        }, 700);
+
+
+        return;
+      }
+
+
+      /* =====================================
+         LOGIN
+         ===================================== */
+
+      debug(
+        "Sending login request to Supabase..."
+      );
+
+
+      const result =
+        await supabaseClient.auth
+          .signInWithPassword({
+
+            email: email,
+
+            password: password
+
+          });
+
+
+      console.log(
+        "LOGIN RESULT:",
+        result
+      );
+
+
+      if (result.error) {
+
+        throw result.error;
+      }
+
+
+      if (
+        !result.data ||
+        !result.data.user
+      ) {
+
+        throw new Error(
+          "Supabase did not return a logged-in user."
+        );
+
+      }
+
+
+      debug(
+        "Login successful. Opening CV Builder..."
+      );
+
+
+      showStatus(
+        "Login successful! Opening your CV Builder...",
+        "success"
+      );
+
+
+      const profileResult =
+        await supabaseClient
+          .from("profiles")
+          .upsert({
+
+            id:
+              result.data.user.id
+
+          });
+
+
+      console.log(
+        "PROFILE RESULT:",
+        profileResult
+      );
+
+
+      setTimeout(function() {
+
+        window.location.href =
+          BUILDER_URL;
+
+      }, 700);
+
+
+    } catch (error) {
+
+      console.error(
+        "AUTH ERROR:",
+        error
+      );
+
+
+      showStatus(
+        "Authentication error: " +
+        (
+          error.message ||
+          "Unknown error"
+        ),
+        "error"
+      );
+
+
+      debug(
+        "ERROR: " +
+        (
+          error.message ||
+          "Unknown authentication error"
+        )
+      );
+
+
+      button.disabled = false;
+
+      button.textContent =
+        signupMode
+          ? "Create Account"
+          : "Login";
+    }
+
+  }
+
+
+  /* =========================================
+     BUTTON EVENT
+     ========================================= */
+
+  button.addEventListener(
+    "click",
+    submitForm
+  );
+
+
+  debug(
+    "NaijaCV authentication page is ready."
+  );
+
+</script>
+
+</body>
+</html>
