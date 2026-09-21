@@ -1,0 +1,2026 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+  <meta charset="UTF-8">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  >
+
+  <title>NaijaCV - Dashboard</title>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+
+  <style>
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+
+      margin: 0;
+
+      font-family:
+        Arial,
+        sans-serif;
+
+      background:
+        #f5f7fb;
+
+      color:
+        #172033;
+
+    }
+
+
+    /* =========================
+       HEADER
+    ========================= */
+
+    header {
+
+      background:
+        white;
+
+      border-bottom:
+        1px solid #e5e7eb;
+
+      padding:
+        16px 5%;
+
+      display:
+        flex;
+
+      justify-content:
+        space-between;
+
+      align-items:
+        center;
+
+      position:
+        sticky;
+
+      top:
+        0;
+
+      z-index:
+        100;
+
+    }
+
+
+    .logo {
+
+      font-size:
+        25px;
+
+      font-weight:
+        800;
+
+      color:
+        #008751;
+
+    }
+
+
+    .user-area {
+
+      display:
+        flex;
+
+      align-items:
+        center;
+
+      gap:
+        12px;
+
+    }
+
+
+    .user-email {
+
+      color:
+        #64748b;
+
+      font-size:
+        14px;
+
+    }
+
+
+    .logout-btn {
+
+      border:
+        none;
+
+      background:
+        #fee2e2;
+
+      color:
+        #b91c1c;
+
+      padding:
+        9px 14px;
+
+      border-radius:
+        8px;
+
+      cursor:
+        pointer;
+
+      font-weight:
+        600;
+
+    }
+
+
+
+    /* =========================
+       MAIN
+    ========================= */
+
+    .container {
+
+      width:
+        92%;
+
+      max-width:
+        1150px;
+
+      margin:
+        35px auto;
+
+    }
+
+
+    .welcome {
+
+      display:
+        flex;
+
+      justify-content:
+        space-between;
+
+      align-items:
+        center;
+
+      gap:
+        20px;
+
+      margin-bottom:
+        28px;
+
+    }
+
+
+    .welcome h1 {
+
+      margin:
+        0 0 8px;
+
+      font-size:
+        32px;
+
+    }
+
+
+    .welcome p {
+
+      margin:
+        0;
+
+      color:
+        #64748b;
+
+    }
+
+
+    .create-btn {
+
+      border:
+        none;
+
+      background:
+        #008751;
+
+      color:
+        white;
+
+      padding:
+        13px 20px;
+
+      border-radius:
+        9px;
+
+      cursor:
+        pointer;
+
+      font-weight:
+        700;
+
+      font-size:
+        14px;
+
+      white-space:
+        nowrap;
+
+    }
+
+
+    .create-btn:hover {
+
+      background:
+        #007747;
+
+    }
+
+
+
+    /* =========================
+       STATISTICS
+    ========================= */
+
+    .stats-grid {
+
+      display:
+        grid;
+
+      grid-template-columns:
+        repeat(4, 1fr);
+
+      gap:
+        15px;
+
+      margin-bottom:
+        32px;
+
+    }
+
+
+    .stat-card {
+
+      background:
+        white;
+
+      border:
+        1px solid #e5e7eb;
+
+      border-radius:
+        14px;
+
+      padding:
+        20px;
+
+      box-shadow:
+        0 4px 18px
+        rgba(0,0,0,0.04);
+
+    }
+
+
+    .stat-icon {
+
+      width:
+        45px;
+
+      height:
+        45px;
+
+      border-radius:
+        11px;
+
+      display:
+        flex;
+
+      align-items:
+        center;
+
+      justify-content:
+        center;
+
+      font-size:
+        23px;
+
+      background:
+        #e8f7ef;
+
+      margin-bottom:
+        13px;
+
+    }
+
+
+    .stat-number {
+
+      font-size:
+        27px;
+
+      font-weight:
+        800;
+
+      margin-bottom:
+        4px;
+
+    }
+
+
+    .stat-label {
+
+      font-size:
+        13px;
+
+      color:
+        #64748b;
+
+    }
+
+
+
+    /* =========================
+       CV SECTION
+    ========================= */
+
+    .section-header {
+
+      display:
+        flex;
+
+      justify-content:
+        space-between;
+
+      align-items:
+        center;
+
+      margin-bottom:
+        18px;
+
+    }
+
+
+    .section-header h2 {
+
+      margin:
+        0;
+
+      font-size:
+        22px;
+
+    }
+
+
+    .cv-grid {
+
+      display:
+        grid;
+
+      grid-template-columns:
+        repeat(3, 1fr);
+
+      gap:
+        20px;
+
+    }
+
+
+
+    /* =========================
+       CV CARD
+    ========================= */
+
+    .cv-card {
+
+      background:
+        white;
+
+      border:
+        1px solid #e5e7eb;
+
+      border-radius:
+        15px;
+
+      overflow:
+        hidden;
+
+      box-shadow:
+        0 5px 20px
+        rgba(0,0,0,0.04);
+
+      transition:
+        transform 0.2s ease,
+        box-shadow 0.2s ease;
+
+    }
+
+
+    .cv-card:hover {
+
+      transform:
+        translateY(-3px);
+
+      box-shadow:
+        0 10px 25px
+        rgba(0,0,0,0.08);
+
+    }
+
+
+    .cv-preview {
+
+      height:
+        145px;
+
+      background:
+        linear-gradient(
+          135deg,
+          #e8f7ef,
+          #f5f7fb
+        );
+
+      padding:
+        18px;
+
+      position:
+        relative;
+
+    }
+
+
+    .paper {
+
+      background:
+        white;
+
+      width:
+        100px;
+
+      height:
+        120px;
+
+      border-radius:
+        4px;
+
+      box-shadow:
+        0 3px 10px
+        rgba(0,0,0,0.12);
+
+      padding:
+        12px;
+
+    }
+
+
+    .paper-line {
+
+      height:
+        5px;
+
+      background:
+        #d1d5db;
+
+      margin-bottom:
+        7px;
+
+      border-radius:
+        3px;
+
+    }
+
+
+    .paper-line.large {
+
+      width:
+        70%;
+
+      height:
+        8px;
+
+      background:
+        #008751;
+
+    }
+
+
+    .paper-line.short {
+
+      width:
+        45%;
+
+    }
+
+
+    .career-badge {
+
+      position:
+        absolute;
+
+      right:
+        12px;
+
+      top:
+        12px;
+
+      background:
+        white;
+
+      border-radius:
+        20px;
+
+      padding:
+        6px 9px;
+
+      font-size:
+        11px;
+
+      font-weight:
+        700;
+
+      box-shadow:
+        0 2px 7px
+        rgba(0,0,0,0.08);
+
+    }
+
+
+    .cv-info {
+
+      padding:
+        18px;
+
+    }
+
+
+    .cv-info h3 {
+
+      margin:
+        0 0 7px;
+
+      font-size:
+        18px;
+
+      white-space:
+        nowrap;
+
+      overflow:
+        hidden;
+
+      text-overflow:
+        ellipsis;
+
+    }
+
+
+    .cv-meta {
+
+      color:
+        #64748b;
+
+      font-size:
+        12px;
+
+      line-height:
+        1.6;
+
+      margin-bottom:
+        15px;
+
+    }
+
+
+    .cv-actions {
+
+      display:
+        grid;
+
+      grid-template-columns:
+        1fr 1fr;
+
+      gap:
+        7px;
+
+    }
+
+
+    .action-btn {
+
+      border:
+        none;
+
+      padding:
+        9px 7px;
+
+      border-radius:
+        7px;
+
+      cursor:
+        pointer;
+
+      font-size:
+        12px;
+
+      font-weight:
+        600;
+
+    }
+
+
+    .edit-btn {
+
+      background:
+        #dcfce7;
+
+      color:
+        #166534;
+
+    }
+
+
+    .duplicate-btn {
+
+      background:
+        #e0f2fe;
+
+      color:
+        #0369a1;
+
+    }
+
+
+    .delete-btn {
+
+      background:
+        #fee2e2;
+
+      color:
+        #b91c1c;
+
+    }
+
+
+    .preview-btn {
+
+      background:
+        #f1f5f9;
+
+      color:
+        #334155;
+
+    }
+
+
+
+    /* =========================
+       EMPTY STATE
+    ========================= */
+
+    .empty {
+
+      background:
+        white;
+
+      border:
+        2px dashed #d1d5db;
+
+      border-radius:
+        15px;
+
+      padding:
+        60px 20px;
+
+      text-align:
+        center;
+
+      color:
+        #64748b;
+
+      grid-column:
+        1 / -1;
+
+    }
+
+
+    .empty-icon {
+
+      font-size:
+        50px;
+
+      margin-bottom:
+        15px;
+
+    }
+
+
+    .empty h3 {
+
+      color:
+        #172033;
+
+      margin-bottom:
+        7px;
+
+    }
+
+
+
+    /* =========================
+       MESSAGE
+    ========================= */
+
+    .message {
+
+      display:
+        none;
+
+      padding:
+        12px 15px;
+
+      border-radius:
+        8px;
+
+      margin-bottom:
+        20px;
+
+      font-size:
+        14px;
+
+    }
+
+
+    .message.success {
+
+      display:
+        block;
+
+      background:
+        #dcfce7;
+
+      color:
+        #166534;
+
+    }
+
+
+    .message.error {
+
+      display:
+        block;
+
+      background:
+        #fee2e2;
+
+      color:
+        #b91c1c;
+
+    }
+
+
+
+    /* =========================
+       LOADING
+    ========================= */
+
+    .loading {
+
+      grid-column:
+        1 / -1;
+
+      background:
+        white;
+
+      padding:
+        60px;
+
+      text-align:
+        center;
+
+      border-radius:
+        14px;
+
+      color:
+        #64748b;
+
+    }
+
+
+
+    /* =========================
+       MOBILE
+    ========================= */
+
+    @media (
+      max-width: 900px
+    ) {
+
+      .stats-grid {
+
+        grid-template-columns:
+          repeat(2, 1fr);
+
+      }
+
+      .cv-grid {
+
+        grid-template-columns:
+          repeat(2, 1fr);
+
+      }
+
+    }
+
+
+    @media (
+      max-width: 600px
+    ) {
+
+      header {
+
+        padding:
+          14px 4%;
+
+      }
+
+
+      .user-email {
+
+        display:
+          none;
+
+      }
+
+
+      .container {
+
+        width:
+          92%;
+
+        margin:
+          25px auto;
+
+      }
+
+
+      .welcome {
+
+        flex-direction:
+          column;
+
+        align-items:
+          stretch;
+
+      }
+
+
+      .welcome h1 {
+
+        font-size:
+          27px;
+
+      }
+
+
+      .create-btn {
+
+        width:
+          100%;
+
+      }
+
+
+      .stats-grid {
+
+        grid-template-columns:
+          1fr 1fr;
+
+        gap:
+          10px;
+
+      }
+
+
+      .stat-card {
+
+        padding:
+          15px;
+
+      }
+
+
+      .stat-number {
+
+        font-size:
+          23px;
+
+      }
+
+
+      .cv-grid {
+
+        grid-template-columns:
+          1fr;
+
+      }
+
+    }
+
+  </style>
+
+</head>
+
+
+<body>
+
+
+<header>
+
+  <div class="logo">
+    NaijaCV
+  </div>
+
+
+  <div class="user-area">
+
+    <span
+      id="userEmail"
+      class="user-email"
+    >
+      Loading...
+    </span>
+
+
+    <button
+      class="logout-btn"
+      onclick="logout()"
+    >
+      Logout
+    </button>
+
+  </div>
+
+</header>
+
+
+
+<main class="container">
+
+
+  <!-- =========================
+       WELCOME
+  ========================= -->
+
+  <section class="welcome">
+
+    <div>
+
+      <h1>
+        Welcome back 👋
+      </h1>
+
+      <p>
+        Create, manage and customize your professional CVs.
+      </p>
+
+    </div>
+
+
+    <button
+      class="create-btn"
+      onclick="createNewCV()"
+    >
+      + Create New CV
+    </button>
+
+  </section>
+
+
+
+  <div
+    id="message"
+    class="message"
+  ></div>
+
+
+
+  <!-- =========================
+       STATISTICS
+  ========================= -->
+
+  <section
+    id="statsGrid"
+    class="stats-grid"
+  >
+
+    <div class="stat-card">
+
+      <div class="stat-icon">
+        📄
+      </div>
+
+      <div
+        id="totalCount"
+        class="stat-number"
+      >
+        0
+      </div>
+
+      <div class="stat-label">
+        Total CVs
+      </div>
+
+    </div>
+
+
+    <div class="stat-card">
+
+      <div class="stat-icon">
+        ⚽
+      </div>
+
+      <div
+        id="footballCount"
+        class="stat-number"
+      >
+        0
+      </div>
+
+      <div class="stat-label">
+        Football CVs
+      </div>
+
+    </div>
+
+
+    <div class="stat-card">
+
+      <div class="stat-icon">
+        💼
+      </div>
+
+      <div
+        id="professionalCount"
+        class="stat-number"
+      >
+        0
+      </div>
+
+      <div class="stat-label">
+        Professional CVs
+      </div>
+
+    </div>
+
+
+    <div class="stat-card">
+
+      <div class="stat-icon">
+        🎓
+      </div>
+
+      <div
+        id="studentCount"
+        class="stat-number"
+      >
+        0
+      </div>
+
+      <div class="stat-label">
+        Student CVs
+      </div>
+
+    </div>
+
+  </section>
+
+
+
+  <!-- =========================
+       CV LIST
+  ========================= -->
+
+  <section>
+
+    <div class="section-header">
+
+      <h2>
+        My CVs
+      </h2>
+
+    </div>
+
+
+    <div
+      id="cvContainer"
+      class="cv-grid"
+    >
+
+      <div class="loading">
+        Loading your CVs...
+      </div>
+
+    </div>
+
+  </section>
+
+
+</main>
+
+
+
+<script>
+
+
+  /* =================================
+     SUPABASE
+  ================================= */
+
+  const SUPABASE_URL =
+    "https://wkkekfrfuuhsmifgddqr.supabase.co";
+
+
+  const SUPABASE_KEY =
+    "sb_publishable_X0hCcFAvsC6rlepbtgxhig_hcXMtPyA";
+
+
+  const supabaseClient =
+    window.supabase.createClient(
+      SUPABASE_URL,
+      SUPABASE_KEY
+    );
+
+
+  let currentUser =
+    null;
+
+
+  let allCVs =
+    [];
+
+
+
+  /* =================================
+     CAREER DISPLAY
+  ================================= */
+
+  const careerInfo = {
+
+    football: {
+      icon: "⚽",
+      name: "Football CV"
+    },
+
+    professional: {
+      icon: "💼",
+      name: "Professional CV"
+    },
+
+    student: {
+      icon: "🎓",
+      name: "Student / Graduate"
+    },
+
+    tech: {
+      icon: "💻",
+      name: "Tech CV"
+    },
+
+    creative: {
+      icon: "🎨",
+      name: "Creative CV"
+    },
+
+    general: {
+      icon: "📄",
+      name: "General CV"
+    }
+
+  };
+
+
+
+  /* =================================
+     CHECK USER
+  ================================= */
+
+  async function checkUser() {
+
+    const {
+      data,
+      error
+    } =
+      await supabaseClient
+        .auth
+        .getUser();
+
+
+    if (
+      error ||
+      !data ||
+      !data.user
+    ) {
+
+      window.location.href =
+        "auth.html?mode=login";
+
+      return;
+
+    }
+
+
+    currentUser =
+      data.user;
+
+
+    document.getElementById(
+      "userEmail"
+    ).textContent =
+      currentUser.email;
+
+
+    await loadCVs();
+
+  }
+
+
+
+  /* =================================
+     LOAD CVs
+  ================================= */
+
+  async function loadCVs() {
+
+    const container =
+      document.getElementById(
+        "cvContainer"
+      );
+
+
+    container.innerHTML =
+      '<div class="loading">Loading your CVs...</div>';
+
+
+    const {
+      data,
+      error
+    } =
+      await supabaseClient
+        .from("cvs")
+        .select("*")
+        .eq(
+          "user_id",
+          currentUser.id
+        )
+        .order(
+          "updated_at",
+          {
+            ascending: false
+          }
+        );
+
+
+    if (error) {
+
+      console.error(
+        error
+      );
+
+
+      container.innerHTML = `
+        <div class="empty">
+
+          <div class="empty-icon">
+            ⚠️
+          </div>
+
+          <h3>
+            Unable to load your CVs
+          </h3>
+
+          <p>
+            ${escapeHTML(error.message)}
+          </p>
+
+        </div>
+      `;
+
+      return;
+
+    }
+
+
+    allCVs =
+      data || [];
+
+
+    updateStatistics();
+
+
+    renderCVs();
+
+  }
+
+
+
+  /* =================================
+     STATISTICS
+  ================================= */
+
+  function updateStatistics() {
+
+    document.getElementById(
+      "totalCount"
+    ).textContent =
+      allCVs.length;
+
+
+    document.getElementById(
+      "footballCount"
+    ).textContent =
+      countCareer(
+        "football"
+      );
+
+
+    document.getElementById(
+      "professionalCount"
+    ).textContent =
+      countCareer(
+        "professional"
+      );
+
+
+    document.getElementById(
+      "studentCount"
+    ).textContent =
+      countCareer(
+        "student"
+      );
+
+  }
+
+
+  function countCareer(
+    career
+  ) {
+
+    return allCVs.filter(
+      function(cv) {
+
+        return (
+          cv.career_type ===
+          career
+        );
+
+      }
+    ).length;
+
+  }
+
+
+
+  /* =================================
+     RENDER CVs
+  ================================= */
+
+  function renderCVs() {
+
+    const container =
+      document.getElementById(
+        "cvContainer"
+      );
+
+
+    if (
+      allCVs.length === 0
+    ) {
+
+      container.innerHTML = `
+
+        <div class="empty">
+
+          <div class="empty-icon">
+            📄
+          </div>
+
+          <h3>
+            You don't have a CV yet
+          </h3>
+
+          <p>
+            Create your first professional CV.
+          </p>
+
+          <br>
+
+          <button
+            class="create-btn"
+            onclick="createNewCV()"
+          >
+            Create My First CV
+          </button>
+
+        </div>
+
+      `;
+
+      return;
+
+    }
+
+
+    container.innerHTML =
+      "";
+
+
+    allCVs.forEach(
+      function(cv) {
+
+        const card =
+          document.createElement(
+            "div"
+          );
+
+
+        card.className =
+          "cv-card";
+
+
+        const career =
+          careerInfo[
+            cv.career_type
+          ] ||
+          careerInfo.general;
+
+
+        const title =
+          cv.title ||
+          "My CV";
+
+
+        const updated =
+          cv.updated_at
+            ? new Date(
+                cv.updated_at
+              ).toLocaleString()
+            : "Recently";
+
+
+        card.innerHTML = `
+
+          <div class="cv-preview">
+
+            <div class="paper">
+
+              <div class="paper-line large"></div>
+
+              <div class="paper-line short"></div>
+
+              <div class="paper-line"></div>
+
+              <div class="paper-line"></div>
+
+              <div class="paper-line short"></div>
+
+              <div class="paper-line"></div>
+
+              <div class="paper-line"></div>
+
+            </div>
+
+
+            <div class="career-badge">
+
+              ${career.icon}
+              ${career.name}
+
+            </div>
+
+          </div>
+
+
+          <div class="cv-info">
+
+            <h3>
+              ${escapeHTML(title)}
+            </h3>
+
+
+            <div class="cv-meta">
+
+              ${career.name}
+              <br>
+
+              Last updated:
+              ${escapeHTML(updated)}
+
+            </div>
+
+
+            <div class="cv-actions">
+
+              <button
+                class="action-btn edit-btn"
+                onclick="editCV('${cv.id}')"
+              >
+                ✏️ Edit
+              </button>
+
+
+              <button
+                class="action-btn preview-btn"
+                onclick="previewCV('${cv.id}')"
+              >
+                👁️ Preview
+              </button>
+
+
+              <button
+                class="action-btn duplicate-btn"
+                onclick="duplicateCV('${cv.id}')"
+              >
+                📋 Duplicate
+              </button>
+
+
+              <button
+                class="action-btn delete-btn"
+                onclick="deleteCV('${cv.id}')"
+              >
+                🗑️ Delete
+              </button>
+
+            </div>
+
+          </div>
+
+        `;
+
+
+        container.appendChild(
+          card
+        );
+
+      }
+    );
+
+  }
+
+
+
+  /* =================================
+     CREATE
+  ================================= */
+
+  function createNewCV() {
+
+    window.location.href =
+      "builder-v2.html?new=true";
+
+  }
+
+
+
+  /* =================================
+     EDIT
+  ================================= */
+
+  function editCV(
+    cvId
+  ) {
+
+    window.location.href =
+      "builder-v2.html?id=" +
+      encodeURIComponent(
+        cvId
+      );
+
+  }
+
+
+
+  /* =================================
+     PREVIEW
+  ================================= */
+
+  function previewCV(
+    cvId
+  ) {
+
+    /*
+      For now, Preview opens
+      the builder in edit mode.
+
+      Later we will build a
+      dedicated read-only preview.
+    */
+
+    window.location.href =
+      "builder-v2.html?id=" +
+      encodeURIComponent(
+        cvId
+      );
+
+  }
+
+
+
+  /* =================================
+     DUPLICATE
+  ================================= */
+
+  async function duplicateCV(
+    cvId
+  ) {
+
+
+    const {
+      data: original,
+      error: findError
+    } =
+      await supabaseClient
+        .from("cvs")
+        .select("*")
+        .eq(
+          "id",
+          cvId
+        )
+        .eq(
+          "user_id",
+          currentUser.id
+        )
+        .single();
+
+
+    if (
+      findError ||
+      !original
+    ) {
+
+      showMessage(
+        "Unable to find this CV.",
+        "error"
+      );
+
+      return;
+
+    }
+
+
+    const newCV =
+      {
+        ...original
+      };
+
+
+    delete newCV.id;
+
+
+    newCV.title =
+      (
+        original.title ||
+        "My CV"
+      ) +
+      " Copy";
+
+
+    newCV.created_at =
+      new Date()
+        .toISOString();
+
+
+    newCV.updated_at =
+      new Date()
+        .toISOString();
+
+
+    const {
+      data: duplicated,
+      error: duplicateError
+    } =
+      await supabaseClient
+        .from("cvs")
+        .insert(
+          newCV
+        )
+        .select()
+        .single();
+
+
+    if (
+      duplicateError
+    ) {
+
+      console.error(
+        duplicateError
+      );
+
+
+      showMessage(
+        "Unable to duplicate this CV.",
+        "error"
+      );
+
+      return;
+
+    }
+
+
+    await duplicateChildData(
+      cvId,
+      duplicated.id
+    );
+
+
+    showMessage(
+      "CV duplicated successfully!",
+      "success"
+    );
+
+
+    await loadCVs();
+
+  }
+
+
+
+  /* =================================
+     DUPLICATE CHILD DATA
+  ================================= */
+
+  async function duplicateChildData(
+    oldCVId,
+    newCVId
+  ) {
+
+    const tables =
+      [
+        "education",
+        "experience",
+        "skills"
+      ];
+
+
+    for (
+      const table of tables
+    ) {
+
+
+      const {
+        data,
+        error
+      } =
+        await supabaseClient
+          .from(table)
+          .select("*")
+          .eq(
+            "cv_id",
+            oldCVId
+          );
+
+
+      if (
+        error ||
+        !data ||
+        data.length === 0
+      ) {
+
+        continue;
+
+      }
+
+
+      const copiedRows =
+        data.map(
+          function(row) {
+
+            const newRow =
+              {
+                ...row
+              };
+
+
+            delete newRow.id;
+
+
+            newRow.cv_id =
+              newCVId;
+
+
+            return newRow;
+
+          }
+        );
+
+
+      await supabaseClient
+        .from(table)
+        .insert(
+          copiedRows
+        );
+
+    }
+
+  }
+
+
+
+  /* =================================
+     DELETE
+  ================================= */
+
+  async function deleteCV(
+    cvId
+  ) {
+
+
+    const confirmed =
+      confirm(
+        "Are you sure you want to delete this CV? This cannot be undone."
+      );
+
+
+    if (!confirmed) {
+
+      return;
+
+    }
+
+
+    const tables =
+      [
+        "education",
+        "experience",
+        "skills"
+      ];
+
+
+    for (
+      const table of tables
+    ) {
+
+      await supabaseClient
+        .from(table)
+        .delete()
+        .eq(
+          "cv_id",
+          cvId
+        );
+
+    }
+
+
+    const {
+      error
+    } =
+      await supabaseClient
+        .from("cvs")
+        .delete()
+        .eq(
+          "id",
+          cvId
+        )
+        .eq(
+          "user_id",
+          currentUser.id
+        );
+
+
+    if (error) {
+
+      console.error(
+        error
+      );
+
+
+      showMessage(
+        "Unable to delete CV.",
+        "error"
+      );
+
+      return;
+
+    }
+
+
+    showMessage(
+      "CV deleted successfully.",
+      "success"
+    );
+
+
+    await loadCVs();
+
+  }
+
+
+
+  /* =================================
+     LOGOUT
+  ================================= */
+
+  async function logout() {
+
+    await supabaseClient
+      .auth
+      .signOut();
+
+
+    window.location.href =
+      "auth.html?mode=login";
+
+  }
+
+
+
+  /* =================================
+     MESSAGE
+  ================================= */
+
+  function showMessage(
+    message,
+    type
+  ) {
+
+    const box =
+      document.getElementById(
+        "message"
+      );
+
+
+    box.textContent =
+      message;
+
+
+    box.className =
+      "message " +
+      type;
+
+
+    box.style.display =
+      "block";
+
+
+    setTimeout(
+      function() {
+
+        box.style.display =
+          "none";
+
+      },
+      3000
+    );
+
+  }
+
+
+
+  /* =================================
+     SECURITY HELPER
+  ================================= */
+
+  function escapeHTML(
+    value
+  ) {
+
+    return String(
+      value ?? ""
+    )
+      .replace(
+        /&/g,
+        "&amp;"
+      )
+      .replace(
+        /</g,
+        "&lt;"
+      )
+      .replace(
+        />/g,
+        "&gt;"
+      )
+      .replace(
+        /"/g,
+        "&quot;"
+      )
+      .replace(
+        /'/g,
+        "&#039;"
+      );
+
+  }
+
+
+
+  /* =================================
+     START
+  ================================= */
+
+  checkUser();
+
+</script>
+
+
+</body>
+
+</html>
