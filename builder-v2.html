@@ -1,0 +1,2209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+  <meta charset="UTF-8">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  >
+
+  <title>NaijaCV - CV Builder</title>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <style>
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #f4f6f8;
+      color: #222;
+    }
+
+    header {
+      background: #ffffff;
+      padding: 15px 20px;
+      border-bottom: 1px solid #ddd;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .logo {
+      font-size: 22px;
+      font-weight: bold;
+      color: #008751;
+    }
+
+    .user-area {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 13px;
+    }
+
+    .logout-btn {
+      border: none;
+      background: #222;
+      color: white;
+      padding: 8px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    .logout-btn:hover {
+      opacity: 0.9;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 25px auto;
+      padding: 0 15px;
+    }
+
+    .page-title {
+      margin-bottom: 20px;
+    }
+
+    .page-title h1 {
+      margin-bottom: 5px;
+    }
+
+    .page-title p {
+      color: #666;
+    }
+
+    /* ==========================================
+       CAREER SELECTOR
+       ========================================== */
+
+    .career-selector {
+      margin-bottom: 20px;
+    }
+
+    .career-selector h2 {
+      margin-top: 0;
+      margin-bottom: 5px;
+    }
+
+    .career-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-top: 20px;
+    }
+
+    .career-option {
+      background: #ffffff;
+      border: 2px solid #e1e5e8;
+      border-radius: 12px;
+      padding: 18px 12px;
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.2s ease;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 7px;
+      font-family: inherit;
+    }
+
+    .career-option:hover {
+      border-color: #008751;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+    }
+
+    .career-option.selected {
+      border-color: #008751;
+      background: #e8f7ef;
+      box-shadow: 0 0 0 2px rgba(0,135,81,0.08);
+    }
+
+    .career-icon {
+      font-size: 30px;
+      line-height: 1;
+    }
+
+    .career-option strong {
+      font-size: 15px;
+    }
+
+    .career-option span {
+      font-size: 12px;
+      color: #666;
+      line-height: 1.4;
+    }
+
+    .selected-career {
+      margin-top: 15px;
+      padding: 12px;
+      background: #f4f6f8;
+      border-radius: 7px;
+      font-size: 14px;
+      color: #555;
+    }
+
+    .selected-career strong {
+      color: #008751;
+    }
+
+    /* ==========================================
+       BUILDER
+       ========================================== */
+
+    .builder {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+
+    .card {
+      background: white;
+      border-radius: 10px;
+      padding: 20px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    }
+
+    .card h2 {
+      margin-top: 0;
+      font-size: 20px;
+    }
+
+    .section-title {
+      margin-top: 25px;
+      border-bottom: 1px solid #ddd;
+      padding-bottom: 8px;
+    }
+
+    label {
+      display: block;
+      font-weight: bold;
+      margin-top: 14px;
+      margin-bottom: 6px;
+      font-size: 14px;
+    }
+
+    input,
+    textarea {
+      width: 100%;
+      padding: 11px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 15px;
+      font-family: inherit;
+    }
+
+    input:focus,
+    textarea:focus {
+      outline: none;
+      border-color: #008751;
+      box-shadow: 0 0 0 2px rgba(0,135,81,0.08);
+    }
+
+    textarea {
+      min-height: 100px;
+      resize: vertical;
+    }
+
+    .help {
+      color: #777;
+      font-size: 12px;
+      margin-top: 5px;
+      line-height: 1.5;
+    }
+
+    .save-btn {
+      width: 100%;
+      margin-top: 20px;
+      padding: 13px;
+      background: #008751;
+      color: white;
+      border: none;
+      border-radius: 7px;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .save-btn:hover {
+      background: #007747;
+    }
+
+    .save-btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    .clear-btn {
+      width: 100%;
+      margin-top: 10px;
+      padding: 11px;
+      background: #eee;
+      color: #222;
+      border: none;
+      border-radius: 7px;
+      cursor: pointer;
+    }
+
+    .clear-btn:hover {
+      background: #ddd;
+    }
+
+    .status {
+      margin-top: 12px;
+      padding: 10px;
+      border-radius: 6px;
+      display: none;
+      font-size: 14px;
+    }
+
+    .status.success {
+      display: block;
+      background: #e8f7ef;
+      color: #08753f;
+    }
+
+    .status.error {
+      display: block;
+      background: #fdecec;
+      color: #a00000;
+    }
+
+    .saved-info {
+      margin-top: 10px;
+      color: #666;
+      font-size: 13px;
+    }
+
+    /* ==========================================
+       PREVIEW
+       ========================================== */
+
+    .preview {
+      background: #eee;
+      padding: 20px;
+      min-height: 700px;
+    }
+
+    .cv-paper {
+      background: white;
+      max-width: 800px;
+      min-height: 900px;
+      margin: auto;
+      padding: 40px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+
+    .cv-name {
+      font-size: 30px;
+      font-weight: bold;
+      margin-bottom: 5px;
+    }
+
+    .cv-title {
+      font-size: 17px;
+      color: #008751;
+      margin-bottom: 12px;
+    }
+
+    .contact {
+      color: #555;
+      font-size: 13px;
+      line-height: 1.6;
+      margin-bottom: 25px;
+    }
+
+    .cv-career {
+      display: inline-block;
+      background: #e8f7ef;
+      color: #08753f;
+      padding: 5px 9px;
+      border-radius: 5px;
+      font-size: 12px;
+      margin-bottom: 10px;
+    }
+
+    .cv-section {
+      margin-top: 25px;
+    }
+
+    .cv-section h3 {
+      color: #008751;
+      border-bottom: 2px solid #008751;
+      padding-bottom: 5px;
+      margin-bottom: 10px;
+    }
+
+    .cv-text {
+      white-space: pre-line;
+      line-height: 1.6;
+      color: #444;
+    }
+
+    /* ==========================================
+       MOBILE
+       ========================================== */
+
+    @media (max-width: 800px) {
+
+      .builder {
+        grid-template-columns: 1fr;
+      }
+
+      .career-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .cv-paper {
+        padding: 25px;
+      }
+
+      .preview {
+        padding: 10px;
+      }
+
+      .cv-name {
+        font-size: 25px;
+      }
+
+      header {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+    }
+
+    @media (max-width: 500px) {
+
+      .career-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .container {
+        padding: 0 10px;
+      }
+
+      .card {
+        padding: 15px;
+      }
+
+    }
+
+  </style>
+
+</head>
+
+<body>
+
+<header>
+
+  <div class="logo">
+    NaijaCV
+  </div>
+
+  <div class="user-area">
+
+    <span id="userEmail">
+      Checking account...
+    </span>
+
+    <button
+      class="logout-btn"
+      onclick="logout()"
+    >
+      Logout
+    </button>
+
+  </div>
+
+</header>
+
+
+<div class="container">
+
+
+  <!-- ==========================================
+       CAREER SELECTION
+       ========================================== -->
+
+  <div class="career-selector card">
+
+    <h2>
+      What type of CV are you creating?
+    </h2>
+
+    <p class="help">
+      Choose the CV that best matches your career or goal.
+      NaijaCV will customize the builder for you.
+    </p>
+
+
+    <div class="career-grid">
+
+
+      <button
+        type="button"
+        class="career-option"
+        data-career="football"
+        onclick="selectCareer('football')"
+      >
+
+        <div class="career-icon">
+          ⚽
+        </div>
+
+        <strong>
+          Football CV
+        </strong>
+
+        <span>
+          For footballers, academies, clubs and trials
+        </span>
+
+      </button>
+
+
+      <button
+        type="button"
+        class="career-option"
+        data-career="professional"
+        onclick="selectCareer('professional')"
+      >
+
+        <div class="career-icon">
+          💼
+        </div>
+
+        <strong>
+          Professional CV
+        </strong>
+
+        <span>
+          For office, corporate and general employment
+        </span>
+
+      </button>
+
+
+      <button
+        type="button"
+        class="career-option"
+        data-career="student"
+        onclick="selectCareer('student')"
+      >
+
+        <div class="career-icon">
+          🎓
+        </div>
+
+        <strong>
+          Student / Graduate
+        </strong>
+
+        <span>
+          For students, graduates and internships
+        </span>
+
+      </button>
+
+
+      <button
+        type="button"
+        class="career-option"
+        data-career="tech"
+        onclick="selectCareer('tech')"
+      >
+
+        <div class="career-icon">
+          💻
+        </div>
+
+        <strong>
+          Tech CV
+        </strong>
+
+        <span>
+          For developers, IT and technology careers
+        </span>
+
+      </button>
+
+
+      <button
+        type="button"
+        class="career-option"
+        data-career="creative"
+        onclick="selectCareer('creative')"
+      >
+
+        <div class="career-icon">
+          🎨
+        </div>
+
+        <strong>
+          Creative CV
+        </strong>
+
+        <span>
+          For designers, artists and creative professionals
+        </span>
+
+      </button>
+
+
+      <button
+        type="button"
+        class="career-option"
+        data-career="general"
+        onclick="selectCareer('general')"
+      >
+
+        <div class="career-icon">
+          📄
+        </div>
+
+        <strong>
+          General CV
+        </strong>
+
+        <span>
+          A flexible CV for other career paths
+        </span>
+
+      </button>
+
+
+    </div>
+
+
+    <div
+      id="selectedCareer"
+      class="selected-career"
+    >
+      No CV type selected yet.
+    </div>
+
+  </div>
+
+
+
+  <!-- ==========================================
+       PAGE TITLE
+       ========================================== -->
+
+  <div class="page-title">
+
+    <h1>
+      Create Your CV
+    </h1>
+
+    <p id="builderDescription">
+      Build a professional CV and save it securely to your account.
+    </p>
+
+  </div>
+
+
+
+  <div class="builder">
+
+
+    <!-- ========================================
+         FORM
+         ======================================== -->
+
+    <div class="card">
+
+      <h2>
+        CV Information
+      </h2>
+
+
+      <label for="fullName">
+        Full Name
+      </label>
+
+      <input
+        id="fullName"
+        type="text"
+        placeholder="e.g. Joseph Bankole Jeremiah"
+        oninput="updateCV()"
+      >
+
+
+      <label for="professionalTitle">
+        Professional Title
+      </label>
+
+      <input
+        id="professionalTitle"
+        type="text"
+        placeholder="e.g. Centre Midfielder"
+        oninput="updateCV()"
+      >
+
+
+      <label for="email">
+        Email
+      </label>
+
+      <input
+        id="email"
+        type="email"
+        placeholder="you@example.com"
+        oninput="updateCV()"
+      >
+
+
+      <label for="phone">
+        Phone
+      </label>
+
+      <input
+        id="phone"
+        type="text"
+        placeholder="08012345678"
+        oninput="updateCV()"
+      >
+
+
+      <label for="location">
+        Location
+      </label>
+
+      <input
+        id="location"
+        type="text"
+        placeholder="Abuja, Nigeria"
+        oninput="updateCV()"
+      >
+
+
+      <h3 class="section-title">
+        Professional Summary
+      </h3>
+
+      <label for="summary">
+        About You
+      </label>
+
+      <textarea
+        id="summary"
+        placeholder="Write a short professional summary about yourself..."
+        oninput="updateCV()"
+      ></textarea>
+
+
+      <h3 class="section-title">
+        Education
+      </h3>
+
+      <label for="education">
+        Education Details
+      </label>
+
+      <textarea
+        id="education"
+        placeholder="Example: B.Sc. Computer Science - University of Abuja - 2024 to 2028"
+        oninput="updateCV()"
+      ></textarea>
+
+      <div class="help">
+        Enter your education information.
+      </div>
+
+
+      <h3 class="section-title">
+        Work Experience
+      </h3>
+
+      <label for="experience">
+        Experience Details
+      </label>
+
+      <textarea
+        id="experience"
+        placeholder="Example: Sales Assistant - ABC Company - 2025 to 2026"
+        oninput="updateCV()"
+      ></textarea>
+
+      <div class="help">
+        Enter your work or professional experience.
+      </div>
+
+
+      <h3 class="section-title">
+        Skills
+      </h3>
+
+      <label for="skills">
+        Skills
+      </label>
+
+      <textarea
+        id="skills"
+        placeholder="Example: Communication, Leadership, Microsoft Word, Teamwork"
+        oninput="updateCV()"
+      ></textarea>
+
+      <div class="help">
+        Separate each skill with a comma.
+      </div>
+
+
+      <button
+        id="saveButton"
+        class="save-btn"
+        onclick="saveCV()"
+      >
+        Save CV
+      </button>
+
+
+      <button
+        class="clear-btn"
+        onclick="clearForm()"
+      >
+        Clear Form
+      </button>
+
+
+      <div
+        id="status"
+        class="status"
+      ></div>
+
+
+      <div
+        id="savedInfo"
+        class="saved-info"
+      ></div>
+
+    </div>
+
+
+
+    <!-- ========================================
+         LIVE PREVIEW
+         ======================================== -->
+
+    <div class="card">
+
+      <h2>
+        Live Preview
+      </h2>
+
+      <div class="preview">
+
+        <div class="cv-paper">
+
+
+          <div
+            id="previewCareer"
+            class="cv-career"
+          >
+            General CV
+          </div>
+
+
+          <div
+            id="previewName"
+            class="cv-name"
+          >
+            Your Name
+          </div>
+
+
+          <div
+            id="previewTitle"
+            class="cv-title"
+          >
+            Professional Title
+          </div>
+
+
+          <div
+            id="previewContact"
+            class="contact"
+          >
+            Email • Phone • Location
+          </div>
+
+
+
+          <div class="cv-section">
+
+            <h3>
+              Professional Summary
+            </h3>
+
+            <div
+              id="previewSummary"
+              class="cv-text"
+            >
+              Your professional summary will appear here.
+            </div>
+
+          </div>
+
+
+
+          <div class="cv-section">
+
+            <h3>
+              Education
+            </h3>
+
+            <div
+              id="previewEducation"
+              class="cv-text"
+            >
+              Your education will appear here.
+            </div>
+
+          </div>
+
+
+
+          <div class="cv-section">
+
+            <h3>
+              Work Experience
+            </h3>
+
+            <div
+              id="previewExperience"
+              class="cv-text"
+            >
+              Your experience will appear here.
+            </div>
+
+          </div>
+
+
+
+          <div class="cv-section">
+
+            <h3>
+              Skills
+            </h3>
+
+            <div
+              id="previewSkills"
+              class="cv-text"
+            >
+              Your skills will appear here.
+            </div>
+
+          </div>
+
+
+        </div>
+
+      </div>
+
+    </div>
+
+
+  </div>
+
+</div>
+
+
+
+<script>
+
+
+  // ==========================================
+  // SUPABASE
+  // ==========================================
+
+  const SUPABASE_URL =
+    "https://wkkekfrfuuhsmifgddqr.supabase.co";
+
+
+  const SUPABASE_KEY =
+    "sb_publishable_X0hCcFAvsC6rlepbtgxhig_hcXMtPyA";
+
+
+  const supabaseClient =
+    window.supabase.createClient(
+      SUPABASE_URL,
+      SUPABASE_KEY
+    );
+
+
+  // ==========================================
+  // GLOBAL VARIABLES
+  // ==========================================
+
+  let currentUser = null;
+
+  let currentCVId = null;
+
+  let selectedCareer =
+    localStorage.getItem("naijacv_career") || "general";
+
+
+  // ==========================================
+  // CAREER INFORMATION
+  // ==========================================
+
+  const careerNames = {
+
+    football:
+      "⚽ Football CV",
+
+    professional:
+      "💼 Professional CV",
+
+    student:
+      "🎓 Student / Graduate CV",
+
+    tech:
+      "💻 Tech CV",
+
+    creative:
+      "🎨 Creative CV",
+
+    general:
+      "📄 General CV"
+
+  };
+
+
+  const careerDescriptions = {
+
+    football:
+      "Create a professional football CV for clubs, academies, scouts and trials.",
+
+    professional:
+      "Create a professional CV for office, corporate and employment opportunities.",
+
+    student:
+      "Create a CV designed for students, graduates, internships and early careers.",
+
+    tech:
+      "Create a CV designed for technology, software and IT careers.",
+
+    creative:
+      "Create a CV designed for creative professionals and portfolio-based careers.",
+
+    general:
+      "Build a flexible professional CV for your career or job search."
+
+  };
+
+
+  // ==========================================
+  // SELECT CAREER
+  // ==========================================
+
+  function selectCareer(career) {
+
+    selectedCareer = career;
+
+
+    localStorage.setItem(
+      "naijacv_career",
+      career
+    );
+
+
+    document
+      .querySelectorAll(".career-option")
+      .forEach(function(button) {
+
+        button.classList.remove("selected");
+
+      });
+
+
+    const selectedButton =
+      document.querySelector(
+        '.career-option[data-career="' +
+        career +
+        '"]'
+      );
+
+
+    if (selectedButton) {
+
+      selectedButton.classList.add(
+        "selected"
+      );
+
+    }
+
+
+    document.getElementById(
+      "selectedCareer"
+    ).innerHTML =
+      "<strong>Selected:</strong> " +
+      careerNames[career];
+
+
+    document.getElementById(
+      "builderDescription"
+    ).textContent =
+      careerDescriptions[career];
+
+
+    document.getElementById(
+      "previewCareer"
+    ).textContent =
+      careerNames[career];
+
+
+    updatePlaceholders();
+
+  }
+
+
+  // ==========================================
+  // CAREER-SPECIFIC PLACEHOLDERS
+  // ==========================================
+
+  function updatePlaceholders() {
+
+    const titleInput =
+      document.getElementById(
+        "professionalTitle"
+      );
+
+
+    const summaryInput =
+      document.getElementById(
+        "summary"
+      );
+
+
+    const educationInput =
+      document.getElementById(
+        "education"
+      );
+
+
+    const experienceInput =
+      document.getElementById(
+        "experience"
+      );
+
+
+    const skillsInput =
+      document.getElementById(
+        "skills"
+      );
+
+
+    if (selectedCareer === "football") {
+
+      titleInput.placeholder =
+        "e.g. Centre Midfielder";
+
+
+      summaryInput.placeholder =
+        "Example: Left-footed centre midfielder with strong passing, vision, composure and work rate...";
+
+
+      educationInput.placeholder =
+        "Example: Secondary School / University / Football Academy";
+
+
+      experienceInput.placeholder =
+        "Example: ABC Football Academy - Centre Midfielder - 2024 to 2026";
+
+
+      skillsInput.placeholder =
+        "Example: Passing, First Touch, Vision, Ball Control, Positioning";
+
+    }
+
+
+    else if (
+      selectedCareer === "tech"
+    ) {
+
+      titleInput.placeholder =
+        "e.g. Frontend Developer";
+
+
+      summaryInput.placeholder =
+        "Example: Junior developer with experience building responsive web applications...";
+
+
+      educationInput.placeholder =
+        "Example: B.Sc. Computer Science - University - 2024 to 2028";
+
+
+      experienceInput.placeholder =
+        "Example: Junior Developer - ABC Tech - 2025 to 2026";
+
+
+      skillsInput.placeholder =
+        "Example: HTML, CSS, JavaScript, Git, React";
+
+    }
+
+
+    else if (
+      selectedCareer === "student"
+    ) {
+
+      titleInput.placeholder =
+        "e.g. Computer Science Student";
+
+
+      summaryInput.placeholder =
+        "Example: Motivated university student seeking an internship opportunity...";
+
+
+      educationInput.placeholder =
+        "Example: B.Sc. Computer Science - University of Abuja - 2024 to 2028";
+
+
+      experienceInput.placeholder =
+        "Example: Internship / Volunteer / School Project";
+
+
+      skillsInput.placeholder =
+        "Example: Communication, Research, Microsoft Office, Teamwork";
+
+    }
+
+
+    else if (
+      selectedCareer === "creative"
+    ) {
+
+      titleInput.placeholder =
+        "e.g. Graphic Designer";
+
+
+      summaryInput.placeholder =
+        "Example: Creative designer with experience developing visual content and brand materials...";
+
+
+      educationInput.placeholder =
+        "Example: Diploma in Graphic Design - Institution - 2024";
+
+
+      experienceInput.placeholder =
+        "Example: Freelance Graphic Designer - 2024 to Present";
+
+
+      skillsInput.placeholder =
+        "Example: Canva, Photoshop, Branding, Illustration";
+
+    }
+
+
+    else {
+
+      titleInput.placeholder =
+        "e.g. Marketing Assistant";
+
+
+      summaryInput.placeholder =
+        "Write a short professional summary about yourself...";
+
+
+      educationInput.placeholder =
+        "Example: B.Sc. Business Administration - University - 2024 to 2028";
+
+
+      experienceInput.placeholder =
+        "Example: Sales Assistant - ABC Company - 2025 to 2026";
+
+
+      skillsInput.placeholder =
+        "Example: Communication, Leadership, Microsoft Word, Teamwork";
+
+    }
+
+  }
+
+
+  // ==========================================
+  // CHECK USER
+  // ==========================================
+
+  async function checkUser() {
+
+    const {
+      data,
+      error
+    } =
+      await supabaseClient.auth.getUser();
+
+
+    if (
+      error ||
+      !data ||
+      !data.user
+    ) {
+
+      window.location.href =
+        "auth.html?mode=login";
+
+      return;
+
+    }
+
+
+    currentUser =
+      data.user;
+
+
+    document.getElementById(
+      "userEmail"
+    ).textContent =
+      currentUser.email;
+
+
+    // ======================================
+    // CREATE / UPDATE PROFILE
+    // ======================================
+
+    await supabaseClient
+      .from("profiles")
+      .upsert({
+
+        id:
+          currentUser.id
+
+      });
+
+
+    // ======================================
+    // LOAD EXISTING CV
+    // ======================================
+
+    await loadCV();
+
+  }
+
+
+  // ==========================================
+  // LOAD CV
+  // ==========================================
+
+  async function loadCV() {
+
+    const {
+      data,
+      error
+    } =
+      await supabaseClient
+        .from("cvs")
+        .select("*")
+        .eq(
+          "user_id",
+          currentUser.id
+        )
+        .order(
+          "updated_at",
+          {
+            ascending: false
+          }
+        )
+        .limit(1)
+        .maybeSingle();
+
+
+    if (error) {
+
+      console.error(error);
+
+      return;
+
+    }
+
+
+    if (!data) {
+
+      selectCareer(
+        selectedCareer
+      );
+
+      updateCV();
+
+      return;
+
+    }
+
+
+    currentCVId =
+      data.id;
+
+
+    document.getElementById(
+      "fullName"
+    ).value =
+      data.full_name || "";
+
+
+    document.getElementById(
+      "professionalTitle"
+    ).value =
+      data.professional_title || "";
+
+
+    document.getElementById(
+      "email"
+    ).value =
+      data.email || "";
+
+
+    document.getElementById(
+      "phone"
+    ).value =
+      data.phone || "";
+
+
+    document.getElementById(
+      "location"
+    ).value =
+      data.location || "";
+
+
+    document.getElementById(
+      "summary"
+    ).value =
+      data.summary || "";
+
+
+    // ======================================
+    // LOAD EDUCATION
+    // ======================================
+
+    const educationResult =
+      await supabaseClient
+        .from("education")
+        .select("*")
+        .eq(
+          "cv_id",
+          currentCVId
+        )
+        .order(
+          "created_at",
+          {
+            ascending: true
+          }
+        );
+
+
+    if (
+      !educationResult.error &&
+      educationResult.data &&
+      educationResult.data.length > 0
+    ) {
+
+      document.getElementById(
+        "education"
+      ).value =
+        educationResult.data
+          .map(function(item) {
+
+            return item.institution ||
+              item.description ||
+              "";
+
+          })
+          .filter(Boolean)
+          .join("\n");
+
+    }
+
+
+    // ======================================
+    // LOAD EXPERIENCE
+    // ======================================
+
+    const experienceResult =
+      await supabaseClient
+        .from("experience")
+        .select("*")
+        .eq(
+          "cv_id",
+          currentCVId
+        )
+        .order(
+          "created_at",
+          {
+            ascending: true
+          }
+        );
+
+
+    if (
+      !experienceResult.error &&
+      experienceResult.data &&
+      experienceResult.data.length > 0
+    ) {
+
+      document.getElementById(
+        "experience"
+      ).value =
+        experienceResult.data
+          .map(function(item) {
+
+            return item.job_title ||
+              item.description ||
+              "";
+
+          })
+          .filter(Boolean)
+          .join("\n");
+
+    }
+
+
+    // ======================================
+    // LOAD SKILLS
+    // ======================================
+
+    const skillsResult =
+      await supabaseClient
+        .from("skills")
+        .select("*")
+        .eq(
+          "cv_id",
+          currentCVId
+        )
+        .order(
+          "created_at",
+          {
+            ascending: true
+          }
+        );
+
+
+    if (
+      !skillsResult.error &&
+      skillsResult.data &&
+      skillsResult.data.length > 0
+    ) {
+
+      document.getElementById(
+        "skills"
+      ).value =
+        skillsResult.data
+          .map(function(item) {
+
+            return item.skill_name || "";
+
+          })
+          .filter(Boolean)
+          .join(", ");
+
+    }
+
+
+    selectCareer(
+      selectedCareer
+    );
+
+
+    updateCV();
+
+  }
+
+
+  // ==========================================
+  // UPDATE LIVE PREVIEW
+  // ==========================================
+
+  function updateCV() {
+
+    const fullName =
+      document.getElementById(
+        "fullName"
+      ).value.trim();
+
+
+    const professionalTitle =
+      document.getElementById(
+        "professionalTitle"
+      ).value.trim();
+
+
+    const email =
+      document.getElementById(
+        "email"
+      ).value.trim();
+
+
+    const phone =
+      document.getElementById(
+        "phone"
+      ).value.trim();
+
+
+    const location =
+      document.getElementById(
+        "location"
+      ).value.trim();
+
+
+    const summary =
+      document.getElementById(
+        "summary"
+      ).value.trim();
+
+
+    const education =
+      document.getElementById(
+        "education"
+      ).value.trim();
+
+
+    const experience =
+      document.getElementById(
+        "experience"
+      ).value.trim();
+
+
+    const skills =
+      document.getElementById(
+        "skills"
+      ).value.trim();
+
+
+    document.getElementById(
+      "previewName"
+    ).textContent =
+      fullName ||
+      "Your Name";
+
+
+    document.getElementById(
+      "previewTitle"
+    ).textContent =
+      professionalTitle ||
+      "Professional Title";
+
+
+    const contactParts = [];
+
+
+    if (email) {
+
+      contactParts.push(email);
+
+    }
+
+
+    if (phone) {
+
+      contactParts.push(phone);
+
+    }
+
+
+    if (location) {
+
+      contactParts.push(location);
+
+    }
+
+
+    document.getElementById(
+      "previewContact"
+    ).textContent =
+      contactParts.length
+        ? contactParts.join(" • ")
+        : "Email • Phone • Location";
+
+
+    document.getElementById(
+      "previewSummary"
+    ).textContent =
+      summary ||
+      "Your professional summary will appear here.";
+
+
+    document.getElementById(
+      "previewEducation"
+    ).textContent =
+      education ||
+      "Your education will appear here.";
+
+
+    document.getElementById(
+      "previewExperience"
+    ).textContent =
+      experience ||
+      "Your experience will appear here.";
+
+
+    document.getElementById(
+      "previewSkills"
+    ).textContent =
+      skills ||
+      "Your skills will appear here.";
+
+  }
+
+
+  // ==========================================
+  // SAVE CV
+  // ==========================================
+
+  async function saveCV() {
+
+    if (!currentUser) {
+
+      showStatus(
+        "You must be logged in to save your CV.",
+        "error"
+      );
+
+      return;
+
+    }
+
+
+    const button =
+      document.getElementById(
+        "saveButton"
+      );
+
+
+    button.disabled = true;
+
+    button.textContent =
+      "Saving...";
+
+
+    try {
+
+
+      // =====================================
+      // MAIN CV DATA
+      // =====================================
+
+      const cvData = {
+
+        user_id:
+          currentUser.id,
+
+        title:
+          "My CV",
+
+        template:
+          "classic",
+
+        full_name:
+          document.getElementById(
+            "fullName"
+          ).value.trim(),
+
+        professional_title:
+          document.getElementById(
+            "professionalTitle"
+          ).value.trim(),
+
+        email:
+          document.getElementById(
+            "email"
+          ).value.trim(),
+
+        phone:
+          document.getElementById(
+            "phone"
+          ).value.trim(),
+
+        location:
+          document.getElementById(
+            "location"
+          ).value.trim(),
+
+        summary:
+          document.getElementById(
+            "summary"
+          ).value.trim(),
+
+        updated_at:
+          new Date().toISOString()
+
+      };
+
+
+      // =====================================
+      // SAVE MAIN CV
+      // =====================================
+
+      let result;
+
+
+      if (currentCVId) {
+
+        result =
+          await supabaseClient
+            .from("cvs")
+            .update(cvData)
+            .eq(
+              "id",
+              currentCVId
+            )
+            .eq(
+              "user_id",
+              currentUser.id
+            )
+            .select()
+            .single();
+
+      }
+
+      else {
+
+        result =
+          await supabaseClient
+            .from("cvs")
+            .insert(cvData)
+            .select()
+            .single();
+
+      }
+
+
+      if (result.error) {
+
+        throw result.error;
+
+      }
+
+
+      if (result.data) {
+
+        currentCVId =
+          result.data.id;
+
+      }
+
+
+      // =====================================
+      // GET SECTION TEXT
+      // =====================================
+
+      const educationText =
+        document.getElementById(
+          "education"
+        ).value.trim();
+
+
+      const experienceText =
+        document.getElementById(
+          "experience"
+        ).value.trim();
+
+
+      const skillsText =
+        document.getElementById(
+          "skills"
+        ).value.trim();
+
+
+      // =====================================
+      // DELETE OLD EDUCATION
+      // =====================================
+
+      const deleteEducation =
+        await supabaseClient
+          .from("education")
+          .delete()
+          .eq(
+            "cv_id",
+            currentCVId
+          );
+
+
+      if (deleteEducation.error) {
+
+        throw deleteEducation.error;
+
+      }
+
+
+      // =====================================
+      // SAVE EDUCATION
+      // =====================================
+
+      if (educationText) {
+
+        const educationResult =
+          await supabaseClient
+            .from("education")
+            .insert({
+
+              cv_id:
+                currentCVId,
+
+              institution:
+                educationText,
+
+              qualification:
+                "",
+
+              field_of_study:
+                "",
+
+              start_year:
+                "",
+
+              end_year:
+                "",
+
+              description:
+                ""
+
+            });
+
+
+        if (educationResult.error) {
+
+          throw educationResult.error;
+
+        }
+
+      }
+
+
+      // =====================================
+      // DELETE OLD EXPERIENCE
+      // =====================================
+
+      const deleteExperience =
+        await supabaseClient
+          .from("experience")
+          .delete()
+          .eq(
+            "cv_id",
+            currentCVId
+          );
+
+
+      if (deleteExperience.error) {
+
+        throw deleteExperience.error;
+
+      }
+
+
+      // =====================================
+      // SAVE EXPERIENCE
+      // =====================================
+
+      if (experienceText) {
+
+        const experienceResult =
+          await supabaseClient
+            .from("experience")
+            .insert({
+
+              cv_id:
+                currentCVId,
+
+              job_title:
+                experienceText,
+
+              company:
+                "",
+
+              location:
+                "",
+
+              start_date:
+                "",
+
+              end_date:
+                "",
+
+              description:
+                ""
+
+            });
+
+
+        if (experienceResult.error) {
+
+          throw experienceResult.error;
+
+        }
+
+      }
+
+
+      // =====================================
+      // DELETE OLD SKILLS
+      // =====================================
+
+      const deleteSkills =
+        await supabaseClient
+          .from("skills")
+          .delete()
+          .eq(
+            "cv_id",
+            currentCVId
+          );
+
+
+      if (deleteSkills.error) {
+
+        throw deleteSkills.error;
+
+      }
+
+
+      // =====================================
+      // SAVE SKILLS
+      // =====================================
+
+      if (skillsText) {
+
+        const skillsList =
+          skillsText
+            .split(",")
+            .map(function(skill) {
+
+              return skill.trim();
+
+            })
+            .filter(function(skill) {
+
+              return skill.length > 0;
+
+            });
+
+
+        if (skillsList.length > 0) {
+
+          const skillsData =
+            skillsList.map(function(skill) {
+
+              return {
+
+                cv_id:
+                  currentCVId,
+
+                skill_name:
+                  skill,
+
+                skill_level:
+                  ""
+
+              };
+
+            });
+
+
+          const skillsResult =
+            await supabaseClient
+              .from("skills")
+              .insert(
+                skillsData
+              );
+
+
+          if (skillsResult.error) {
+
+            throw skillsResult.error;
+
+          }
+
+        }
+
+      }
+
+
+      // =====================================
+      // SAVE CAREER LOCALLY
+      // =====================================
+
+      localStorage.setItem(
+        "naijacv_career",
+        selectedCareer
+      );
+
+
+      // =====================================
+      // SUCCESS
+      // =====================================
+
+      showStatus(
+        "Your CV has been saved successfully.",
+        "success"
+      );
+
+
+      document.getElementById(
+        "savedInfo"
+      ).textContent =
+        "Last saved: " +
+        new Date().toLocaleString();
+
+
+    }
+
+    catch (error) {
+
+      console.error(error);
+
+
+      showStatus(
+        "Could not save your CV: " +
+        error.message,
+        "error"
+      );
+
+    }
+
+
+    button.disabled = false;
+
+    button.textContent =
+      "Save CV";
+
+  }
+
+
+  // ==========================================
+  // STATUS MESSAGE
+  // ==========================================
+
+  function showStatus(
+    message,
+    type
+  ) {
+
+    const status =
+      document.getElementById(
+        "status"
+      );
+
+
+    status.textContent =
+      message;
+
+
+    status.className =
+      "status " + type;
+
+
+    setTimeout(function() {
+
+      status.className =
+        "status";
+
+    }, 5000);
+
+  }
+
+
+  // ==========================================
+  // CLEAR FORM
+  // ==========================================
+
+  function clearForm() {
+
+    if (
+      !confirm(
+        "Clear all information from the form?"
+      )
+    ) {
+
+      return;
+
+    }
+
+
+    document.getElementById(
+      "fullName"
+    ).value = "";
+
+
+    document.getElementById(
+      "professionalTitle"
+    ).value = "";
+
+
+    document.getElementById(
+      "email"
+    ).value = "";
+
+
+    document.getElementById(
+      "phone"
+    ).value = "";
+
+
+    document.getElementById(
+      "location"
+    ).value = "";
+
+
+    document.getElementById(
+      "summary"
+    ).value = "";
+
+
+    document.getElementById(
+      "education"
+    ).value = "";
+
+
+    document.getElementById(
+      "experience"
+    ).value = "";
+
+
+    document.getElementById(
+      "skills"
+    ).value = "";
+
+
+    updateCV();
+
+  }
+
+
+  // ==========================================
+  // LOGOUT
+  // ==========================================
+
+  async function logout() {
+
+    await supabaseClient.auth.signOut();
+
+
+    window.location.href =
+      "index.html";
+
+  }
+
+
+  // ==========================================
+  // START
+  // ==========================================
+
+  selectCareer(
+    selectedCareer
+  );
+
+
+  checkUser();
+
+
+</script>
+
+</body>
+</html>
