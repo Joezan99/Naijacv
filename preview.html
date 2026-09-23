@@ -1,0 +1,2941 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>NaijaCV - Football CV</title>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+
+/* =========================================================
+   RESET
+========================================================= */
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: Arial, Helvetica, sans-serif;
+    background: #111;
+    color: #fff;
+}
+
+button {
+    font-family: inherit;
+    cursor: pointer;
+}
+
+
+/* =========================================================
+   TOP BAR
+========================================================= */
+
+.topbar {
+    height: 64px;
+    background: #090909;
+    border-bottom: 1px solid #2d2d2d;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    padding: 0 22px;
+
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.logo {
+    font-size: 21px;
+    font-weight: 900;
+    letter-spacing: .5px;
+}
+
+.logo span {
+    color: #f5b400;
+}
+
+.top-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.top-btn {
+    border: 1px solid #444;
+    background: #202020;
+    color: white;
+
+    padding: 9px 14px;
+    border-radius: 6px;
+
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.top-btn.print {
+    background: #f5b400;
+    border-color: #f5b400;
+    color: #111;
+}
+
+
+/* =========================================================
+   LOADING / ERROR
+========================================================= */
+
+#loading {
+    min-height: 300px;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    color: #aaa;
+    font-size: 17px;
+}
+
+#error {
+    display: none;
+
+    max-width: 550px;
+    margin: 60px auto;
+
+    background: #1c1c1c;
+
+    border: 1px solid #333;
+
+    border-radius: 10px;
+
+    padding: 30px;
+
+    text-align: center;
+}
+
+#error h2 {
+    color: #f5b400;
+    margin-bottom: 10px;
+}
+
+#error p {
+    color: #aaa;
+    margin-bottom: 20px;
+}
+
+
+/* =========================================================
+   PAGE
+========================================================= */
+
+.preview-wrapper {
+    padding: 35px 15px 60px;
+}
+
+.cv-page {
+    width: 210mm;
+    min-height: 297mm;
+
+    margin: auto;
+
+    background:
+        radial-gradient(
+            circle at 20% 20%,
+            rgba(245,180,0,.07),
+            transparent 25%
+        ),
+        radial-gradient(
+            circle at 90% 70%,
+            rgba(245,180,0,.05),
+            transparent 25%
+        ),
+        #101010;
+
+    box-shadow: 0 10px 50px rgba(0,0,0,.5);
+
+    overflow: hidden;
+
+    position: relative;
+}
+
+
+/* =========================================================
+   FOOTBALL CV HEADER
+========================================================= */
+
+.football-header {
+    min-height: 270px;
+
+    padding: 38px 42px 30px;
+
+    position: relative;
+
+    background:
+        linear-gradient(
+            135deg,
+            #111 0%,
+            #171717 55%,
+            #0b0b0b 100%
+        );
+
+    border-bottom: 2px solid #f5b400;
+}
+
+.football-header::before {
+    content: "";
+
+    position: absolute;
+
+    width: 500px;
+    height: 500px;
+
+    border: 1px solid rgba(245,180,0,.12);
+
+    border-radius: 50%;
+
+    right: -220px;
+    top: -260px;
+}
+
+.football-header::after {
+    content: "";
+
+    position: absolute;
+
+    width: 380px;
+    height: 380px;
+
+    border: 1px solid rgba(245,180,0,.08);
+
+    border-radius: 50%;
+
+    right: -140px;
+    top: -200px;
+}
+
+.header-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    margin-bottom: 25px;
+}
+
+.football-label {
+    color: #f5b400;
+
+    font-size: 11px;
+
+    font-weight: 900;
+
+    letter-spacing: 3px;
+
+    text-transform: uppercase;
+}
+
+.header-motto {
+    color: #aaa;
+
+    font-size: 9px;
+
+    letter-spacing: 2px;
+
+    text-transform: uppercase;
+}
+
+.hero-content {
+    position: relative;
+    z-index: 2;
+}
+
+.hero-kicker {
+    color: #aaa;
+
+    font-size: 11px;
+
+    letter-spacing: 2px;
+
+    text-transform: uppercase;
+
+    margin-bottom: 7px;
+}
+
+.player-name {
+    font-size: 43px;
+
+    line-height: 1;
+
+    font-weight: 900;
+
+    text-transform: uppercase;
+
+    max-width: 80%;
+
+    letter-spacing: -.5px;
+}
+
+.player-name span {
+    color: #f5b400;
+}
+
+.player-position {
+    display: inline-block;
+
+    margin-top: 13px;
+
+    padding: 7px 13px;
+
+    background: #f5b400;
+
+    color: #111;
+
+    font-size: 11px;
+
+    font-weight: 900;
+
+    letter-spacing: 1px;
+
+    text-transform: uppercase;
+
+    border-radius: 3px;
+}
+
+.player-tagline {
+    color: #ddd;
+
+    font-size: 13px;
+
+    margin-top: 16px;
+
+    font-style: italic;
+
+    max-width: 500px;
+}
+
+.player-tagline::before {
+    content: "“";
+    color: #f5b400;
+    font-size: 25px;
+    margin-right: 4px;
+}
+
+.player-tagline::after {
+    content: "”";
+    color: #f5b400;
+    font-size: 25px;
+    margin-left: 4px;
+}
+
+
+/* =========================================================
+   PLAYER INFO
+========================================================= */
+
+.player-info {
+    margin: 20px 42px 0;
+
+    display: grid;
+
+    grid-template-columns:
+        repeat(4, 1fr);
+
+    gap: 7px;
+
+    position: relative;
+    z-index: 5;
+}
+
+.info-card {
+    background: #181818;
+
+    border: 1px solid #333;
+
+    padding: 10px;
+
+    min-height: 58px;
+}
+
+.info-label {
+    display: block;
+
+    color: #f5b400;
+
+    font-size: 8px;
+
+    text-transform: uppercase;
+
+    letter-spacing: 1px;
+
+    font-weight: 800;
+
+    margin-bottom: 4px;
+}
+
+.info-value {
+    color: #eee;
+
+    font-size: 11px;
+
+    font-weight: 700;
+
+    word-break: break-word;
+}
+
+
+/* =========================================================
+   CONTENT
+========================================================= */
+
+.content {
+    padding: 28px 42px 42px;
+}
+
+.section {
+    margin-bottom: 24px;
+}
+
+.section-title {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+
+    color: #f5b400;
+
+    font-size: 13px;
+
+    font-weight: 900;
+
+    letter-spacing: 1.5px;
+
+    text-transform: uppercase;
+
+    border-bottom: 1px solid #3a3a3a;
+
+    padding-bottom: 7px;
+
+    margin-bottom: 12px;
+}
+
+.section-title::before {
+    content: "";
+
+    width: 4px;
+    height: 15px;
+
+    background: #f5b400;
+
+    display: inline-block;
+}
+
+.section-text {
+    color: #ccc;
+
+    font-size: 12px;
+
+    line-height: 1.65;
+
+    white-space: pre-line;
+}
+
+
+/* =========================================================
+   TWO COLUMN
+========================================================= */
+
+.two-column {
+    display: grid;
+
+    grid-template-columns:
+        1fr 1fr;
+
+    gap: 25px;
+}
+
+
+/* =========================================================
+   STRENGTHS
+========================================================= */
+
+.strength-grid {
+    display: grid;
+
+    grid-template-columns:
+        1fr 1fr;
+
+    gap: 7px 20px;
+}
+
+.strength {
+    color: #ddd;
+
+    font-size: 11.5px;
+
+    padding-left: 16px;
+
+    position: relative;
+}
+
+.strength::before {
+    content: "✓";
+
+    position: absolute;
+
+    left: 0;
+
+    color: #f5b400;
+
+    font-weight: 900;
+}
+
+
+/* =========================================================
+   TRAINING
+========================================================= */
+
+.training-grid {
+    display: grid;
+
+    grid-template-columns:
+        1fr 1fr;
+
+    gap: 10px;
+}
+
+.training-card {
+    background: #171717;
+
+    border: 1px solid #393939;
+
+    padding: 14px;
+
+    border-top: 2px solid #f5b400;
+}
+
+.training-title {
+    color: #f5b400;
+
+    font-size: 11px;
+
+    font-weight: 900;
+
+    text-transform: uppercase;
+
+    letter-spacing: 1px;
+
+    margin-bottom: 9px;
+}
+
+.training-list {
+    list-style: none;
+}
+
+.training-list li {
+    color: #ccc;
+
+    font-size: 10.5px;
+
+    margin-bottom: 6px;
+
+    padding-left: 12px;
+
+    position: relative;
+}
+
+.training-list li::before {
+    content: "•";
+
+    position: absolute;
+
+    left: 0;
+
+    color: #f5b400;
+}
+
+
+/* =========================================================
+   QUALITIES
+========================================================= */
+
+.qualities {
+    display: grid;
+
+    grid-template-columns:
+        1fr 1fr;
+
+    gap: 7px;
+}
+
+.quality {
+    color: #ddd;
+
+    font-size: 11px;
+
+    padding-left: 15px;
+
+    position: relative;
+}
+
+.quality::before {
+    content: "★";
+
+    position: absolute;
+
+    left: 0;
+
+    color: #f5b400;
+
+    font-size: 9px;
+}
+
+
+/* =========================================================
+   ATTRIBUTES
+========================================================= */
+
+.attribute {
+    margin-bottom: 11px;
+}
+
+.attribute-header {
+    display: flex;
+
+    justify-content: space-between;
+
+    margin-bottom: 4px;
+}
+
+.attribute-name {
+    font-size: 10px;
+
+    color: #ddd;
+
+    font-weight: 700;
+
+    text-transform: uppercase;
+}
+
+.attribute-value {
+    font-size: 10px;
+
+    color: #f5b400;
+
+    font-weight: 900;
+}
+
+.attribute-track {
+    width: 100%;
+
+    height: 5px;
+
+    background: #2c2c2c;
+
+    overflow: hidden;
+}
+
+.attribute-fill {
+    height: 100%;
+
+    width: 0;
+
+    background: #f5b400;
+}
+
+
+/* =========================================================
+   CAREER / ACHIEVEMENTS
+========================================================= */
+
+.career-item {
+    border-left: 2px solid #f5b400;
+
+    padding: 3px 0 3px 13px;
+
+    margin-bottom: 10px;
+}
+
+.career-title {
+    color: #eee;
+
+    font-size: 11.5px;
+
+    font-weight: 800;
+}
+
+.career-text {
+    color: #999;
+
+    font-size: 10.5px;
+
+    margin-top: 2px;
+
+    white-space: pre-line;
+}
+
+
+/* =========================================================
+   RECRUITMENT
+========================================================= */
+
+.recruitment {
+    background: #171717;
+
+    border: 1px solid #3c3c3c;
+
+    padding: 15px;
+
+    border-left: 3px solid #f5b400;
+}
+
+.recruitment-row {
+    margin-bottom: 10px;
+}
+
+.recruitment-row:last-child {
+    margin-bottom: 0;
+}
+
+.recruitment-label {
+    color: #f5b400;
+
+    font-size: 9px;
+
+    text-transform: uppercase;
+
+    letter-spacing: 1px;
+
+    font-weight: 900;
+
+    margin-bottom: 3px;
+}
+
+.recruitment-value {
+    color: #ccc;
+
+    font-size: 11px;
+
+    white-space: pre-line;
+
+    word-break: break-word;
+}
+
+.recruitment-value a {
+    color: #f5b400;
+
+    text-decoration: none;
+
+    font-weight: 700;
+}
+
+
+/* =========================================================
+   CAREER GOALS
+========================================================= */
+
+.goal-list {
+    list-style: none;
+}
+
+.goal-list li {
+    color: #ddd;
+
+    font-size: 11px;
+
+    margin-bottom: 7px;
+
+    padding-left: 17px;
+
+    position: relative;
+}
+
+.goal-list li::before {
+    content: "✓";
+
+    position: absolute;
+
+    left: 0;
+
+    color: #f5b400;
+
+    font-weight: 900;
+}
+
+
+/* =========================================================
+   CONTACT
+========================================================= */
+
+.contact-grid {
+    display: grid;
+
+    grid-template-columns:
+        1fr 1fr;
+
+    gap: 8px;
+}
+
+.contact-item {
+    background: #171717;
+
+    border: 1px solid #303030;
+
+    padding: 10px;
+}
+
+.contact-label {
+    color: #f5b400;
+
+    font-size: 8px;
+
+    text-transform: uppercase;
+
+    letter-spacing: 1px;
+
+    font-weight: 900;
+
+    margin-bottom: 3px;
+}
+
+.contact-value {
+    color: #ddd;
+
+    font-size: 10.5px;
+
+    word-break: break-word;
+}
+
+
+/* =========================================================
+   FOOTER
+========================================================= */
+
+.footer {
+    margin-top: 25px;
+
+    border-top: 1px solid #3a3a3a;
+
+    padding-top: 12px;
+
+    text-align: center;
+
+    color: #777;
+
+    font-size: 8px;
+
+    letter-spacing: 2px;
+
+    text-transform: uppercase;
+}
+
+
+/* =========================================================
+   HIDDEN
+========================================================= */
+
+.optional {
+    display: none;
+}
+
+.optional.show {
+    display: block;
+}
+
+
+/* =========================================================
+   NORMAL CV
+========================================================= */
+
+.normal-cv {
+    display: none;
+
+    background: white;
+
+    color: #222;
+
+    min-height: 297mm;
+
+    padding: 45px;
+}
+
+.normal-cv .normal-name {
+    font-size: 34px;
+
+    font-weight: 900;
+
+    color: #111;
+
+    margin-bottom: 5px;
+}
+
+.normal-cv .normal-title {
+    color: #555;
+
+    margin-bottom: 15px;
+}
+
+.normal-cv .normal-contact {
+    color: #555;
+
+    font-size: 12px;
+}
+
+.normal-cv .normal-section {
+    margin-top: 25px;
+}
+
+.normal-cv .normal-title-section {
+    font-size: 13px;
+
+    font-weight: 900;
+
+    text-transform: uppercase;
+
+    border-bottom: 2px solid #222;
+
+    padding-bottom: 6px;
+
+    margin-bottom: 10px;
+}
+
+.normal-cv .normal-text {
+    color: #444;
+
+    font-size: 13px;
+
+    line-height: 1.6;
+
+    white-space: pre-line;
+}
+
+
+/* =========================================================
+   MOBILE
+========================================================= */
+
+@media (max-width: 800px) {
+
+    .topbar {
+        padding: 0 12px;
+    }
+
+    .logo {
+        font-size: 18px;
+    }
+
+    .top-btn {
+        padding: 8px 9px;
+        font-size: 11px;
+    }
+
+    .preview-wrapper {
+        padding: 0;
+    }
+
+    .cv-page {
+        width: 100%;
+
+        min-height: auto;
+
+        box-shadow: none;
+    }
+
+    .football-header {
+        padding: 28px 20px 24px;
+    }
+
+    .header-top {
+        align-items: flex-start;
+    }
+
+    .header-motto {
+        display: none;
+    }
+
+    .player-name {
+        font-size: 31px;
+        max-width: 100%;
+    }
+
+    .player-info {
+        margin: 15px 20px 0;
+
+        grid-template-columns:
+            1fr 1fr;
+    }
+
+    .content {
+        padding: 25px 20px 35px;
+    }
+
+    .two-column {
+        grid-template-columns: 1fr;
+
+        gap: 5px;
+    }
+
+    .training-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .strength-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .qualities {
+        grid-template-columns: 1fr;
+    }
+
+    .contact-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+
+/* =========================================================
+   PRINT
+========================================================= */
+
+@media print {
+
+    @page {
+        size: A4;
+        margin: 0;
+    }
+
+    body {
+        background: #101010;
+    }
+
+    .topbar {
+        display: none !important;
+    }
+
+    .preview-wrapper {
+        padding: 0;
+    }
+
+    .cv-page {
+        width: 210mm;
+
+        min-height: 297mm;
+
+        box-shadow: none;
+
+        margin: 0;
+
+        page-break-after: always;
+    }
+
+    .football-header,
+    .info-card,
+    .training-card,
+    .recruitment,
+    .contact-item {
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+
+    .attribute-fill {
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+}
+
+</style>
+</head>
+
+<body>
+
+
+<!-- =====================================================
+     TOP BAR
+===================================================== -->
+
+<div class="topbar">
+
+    <div class="logo">
+        Naija<span>CV</span>
+    </div>
+
+    <div class="top-actions">
+
+        <button
+            class="top-btn"
+            onclick="goBack()"
+        >
+            ← Back
+        </button>
+
+        <button
+            class="top-btn print"
+            onclick="printCV()"
+        >
+            🖨 Print / PDF
+        </button>
+
+    </div>
+
+</div>
+
+
+<div id="loading">
+    Loading your CV...
+</div>
+
+
+<div id="error">
+
+    <h2>Unable to load CV</h2>
+
+    <p id="errorMessage"></p>
+
+    <button
+        class="top-btn"
+        onclick="goBack()"
+    >
+        ← Dashboard
+    </button>
+
+</div>
+
+
+<div
+    id="previewWrapper"
+    class="preview-wrapper"
+    style="display:none;"
+>
+
+
+<!-- =====================================================
+     FOOTBALL CV
+===================================================== -->
+
+<div
+    id="footballCV"
+    class="cv-page"
+>
+
+
+    <!-- HEADER -->
+
+    <header class="football-header">
+
+        <div class="header-top">
+
+            <div class="football-label">
+                ⚽ Football CV
+            </div>
+
+            <div class="header-motto">
+                Discipline • Dedication • Development
+            </div>
+
+        </div>
+
+
+        <div class="hero-content">
+
+            <div class="hero-kicker">
+                Player Profile
+            </div>
+
+            <div
+                id="playerName"
+                class="player-name"
+            >
+                PLAYER NAME
+            </div>
+
+            <div
+                id="playerPosition"
+                class="player-position"
+            >
+                FOOTBALL PLAYER
+            </div>
+
+            <div
+                id="playerTagline"
+                class="player-tagline"
+            >
+                Player profile
+            </div>
+
+        </div>
+
+    </header>
+
+
+    <!-- PLAYER INFO -->
+
+    <div class="player-info">
+
+
+        <div class="info-card">
+
+            <span class="info-label">
+                Date of Birth
+            </span>
+
+            <span
+                id="infoDob"
+                class="info-value"
+            >
+                —
+            </span>
+
+        </div>
+
+
+        <div class="info-card">
+
+            <span class="info-label">
+                Position
+            </span>
+
+            <span
+                id="infoPosition"
+                class="info-value"
+            >
+                —
+            </span>
+
+        </div>
+
+
+        <div class="info-card">
+
+            <span class="info-label">
+                Preferred Foot
+            </span>
+
+            <span
+                id="infoFoot"
+                class="info-value"
+            >
+                —
+            </span>
+
+        </div>
+
+
+        <div class="info-card">
+
+            <span class="info-label">
+                Height
+            </span>
+
+            <span
+                id="infoHeight"
+                class="info-value"
+            >
+                —
+            </span>
+
+        </div>
+
+
+        <div class="info-card">
+
+            <span class="info-label">
+                Nationality
+            </span>
+
+            <span
+                id="infoNationality"
+                class="info-value"
+            >
+                —
+            </span>
+
+        </div>
+
+
+        <div class="info-card">
+
+            <span class="info-label">
+                Secondary Position
+            </span>
+
+            <span
+                id="infoSecondary"
+                class="info-value"
+            >
+                —
+            </span>
+
+        </div>
+
+
+        <div class="info-card">
+
+            <span class="info-label">
+                Current Club
+            </span>
+
+            <span
+                id="infoClub"
+                class="info-value"
+            >
+                —
+            </span>
+
+        </div>
+
+
+        <div class="info-card">
+
+            <span class="info-label">
+                Location
+            </span>
+
+            <span
+                id="infoLocation"
+                class="info-value"
+            >
+                —
+            </span>
+
+        </div>
+
+    </div>
+
+
+    <!-- CONTENT -->
+
+    <main class="content">
+
+
+        <!-- PROFILE + STRENGTHS -->
+
+        <div class="two-column">
+
+
+            <section
+                id="profileSection"
+                class="section optional"
+            >
+
+                <div class="section-title">
+                    Player Profile
+                </div>
+
+                <div
+                    id="profileText"
+                    class="section-text"
+                ></div>
+
+            </section>
+
+
+            <section
+                id="strengthSection"
+                class="section optional"
+            >
+
+                <div class="section-title">
+                    Strengths
+                </div>
+
+                <div
+                    id="strengths"
+                    class="strength-grid"
+                ></div>
+
+            </section>
+
+
+        </div>
+
+
+        <!-- TRAINING -->
+
+        <section
+            id="trainingSection"
+            class="section optional"
+        >
+
+            <div class="section-title">
+                Training Routine
+            </div>
+
+            <div class="training-grid">
+
+
+                <div
+                    id="personalTrainingCard"
+                    class="training-card"
+                >
+
+                    <div class="training-title">
+                        Personal Training
+                    </div>
+
+                    <ul
+                        id="personalTraining"
+                        class="training-list"
+                    ></ul>
+
+                </div>
+
+
+                <div
+                    id="teamTrainingCard"
+                    class="training-card"
+                >
+
+                    <div class="training-title">
+                        Team Training
+                    </div>
+
+                    <ul
+                        id="teamTraining"
+                        class="training-list"
+                    ></ul>
+
+                </div>
+
+
+            </div>
+
+        </section>
+
+
+        <!-- PLAYING STYLE + QUALITIES -->
+
+        <div class="two-column">
+
+
+            <section
+                id="playingStyleSection"
+                class="section optional"
+            >
+
+                <div class="section-title">
+                    Playing Style
+                </div>
+
+                <div
+                    id="playingStyle"
+                    class="section-text"
+                ></div>
+
+            </section>
+
+
+            <section
+                id="qualitiesSection"
+                class="section optional"
+            >
+
+                <div class="section-title">
+                    Qualities
+                </div>
+
+                <div
+                    id="qualities"
+                    class="qualities"
+                ></div>
+
+            </section>
+
+
+        </div>
+
+
+        <!-- ATTRIBUTES -->
+
+        <section
+            id="attributesSection"
+            class="section optional"
+        >
+
+            <div class="section-title">
+                Player Attributes
+            </div>
+
+            <div
+                id="attributes"
+            ></div>
+
+        </section>
+
+
+        <!-- CAREER -->
+
+        <div class="two-column">
+
+
+            <section
+                id="careerSection"
+                class="section optional"
+            >
+
+                <div class="section-title">
+                    Football Career
+                </div>
+
+                <div id="careerHistory"></div>
+
+            </section>
+
+
+            <section
+                id="achievementsSection"
+                class="section optional"
+            >
+
+                <div class="section-title">
+                    Achievements
+                </div>
+
+                <div
+                    id="achievements"
+                    class="section-text"
+                ></div>
+
+            </section>
+
+
+        </div>
+
+
+        <!-- STATS -->
+
+        <section
+            id="statsSection"
+            class="section optional"
+        >
+
+            <div class="section-title">
+                Career Statistics
+            </div>
+
+            <div class="two-column">
+
+                <div class="career-item">
+
+                    <div class="career-title">
+                        Matches
+                    </div>
+
+                    <div
+                        id="matches"
+                        class="career-text"
+                    ></div>
+
+                </div>
+
+                <div class="career-item">
+
+                    <div class="career-title">
+                        Goals
+                    </div>
+
+                    <div
+                        id="goals"
+                        class="career-text"
+                    ></div>
+
+                </div>
+
+                <div class="career-item">
+
+                    <div class="career-title">
+                        Assists
+                    </div>
+
+                    <div
+                        id="assists"
+                        class="career-text"
+                    ></div>
+
+                </div>
+
+                <div class="career-item">
+
+                    <div class="career-title">
+                        Competitions
+                    </div>
+
+                    <div
+                        id="competitions"
+                        class="career-text"
+                    ></div>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- CAREER GOALS -->
+
+        <section
+            id="goalsSection"
+            class="section optional"
+        >
+
+            <div class="section-title">
+                Career Goals
+            </div>
+
+            <div
+                id="careerGoals"
+                class="section-text"
+            ></div>
+
+        </section>
+
+
+        <!-- RECRUITMENT -->
+
+        <section
+            id="recruitmentSection"
+            class="section optional"
+        >
+
+            <div class="section-title">
+                Recruitment Information
+            </div>
+
+            <div class="recruitment">
+
+
+                <div
+                    id="trialsRow"
+                    class="recruitment-row"
+                >
+
+                    <div class="recruitment-label">
+                        Trials / Scouting
+                    </div>
+
+                    <div
+                        id="trials"
+                        class="recruitment-value"
+                    ></div>
+
+                </div>
+
+
+                <div
+                    id="videoRow"
+                    class="recruitment-row"
+                >
+
+                    <div class="recruitment-label">
+                        Highlight Video
+                    </div>
+
+                    <div
+                        id="video"
+                        class="recruitment-value"
+                    ></div>
+
+                </div>
+
+
+                <div
+                    id="referencesRow"
+                    class="recruitment-row"
+                >
+
+                    <div class="recruitment-label">
+                        References
+                    </div>
+
+                    <div
+                        id="references"
+                        class="recruitment-value"
+                    ></div>
+
+                </div>
+
+
+            </div>
+
+        </section>
+
+
+        <!-- CONTACT -->
+
+        <section
+            id="contactSection"
+            class="section"
+        >
+
+            <div class="section-title">
+                Contact
+            </div>
+
+            <div class="contact-grid">
+
+
+                <div class="contact-item">
+
+                    <div class="contact-label">
+                        Email
+                    </div>
+
+                    <div
+                        id="contactEmail"
+                        class="contact-value"
+                    >
+                        —
+                    </div>
+
+                </div>
+
+
+                <div class="contact-item">
+
+                    <div class="contact-label">
+                        Phone
+                    </div>
+
+                    <div
+                        id="contactPhone"
+                        class="contact-value"
+                    >
+                        —
+                    </div>
+
+                </div>
+
+
+                <div class="contact-item">
+
+                    <div class="contact-label">
+                        Location
+                    </div>
+
+                    <div
+                        id="contactLocation"
+                        class="contact-value"
+                    >
+                        —
+                    </div>
+
+                </div>
+
+
+                <div class="contact-item">
+
+                    <div class="contact-label">
+                        Current Club
+                    </div>
+
+                    <div
+                        id="contactClub"
+                        class="contact-value"
+                    >
+                        —
+                    </div>
+
+                </div>
+
+
+            </div>
+
+        </section>
+
+
+        <div class="footer">
+            Created with NaijaCV • Football Player CV
+        </div>
+
+
+    </main>
+
+</div>
+
+
+<!-- =====================================================
+     NORMAL CV
+===================================================== -->
+
+<div
+    id="normalCV"
+    class="cv-page normal-cv"
+>
+
+    <div
+        id="normalName"
+        class="normal-name"
+    ></div>
+
+    <div
+        id="normalTitle"
+        class="normal-title"
+    ></div>
+
+    <div
+        id="normalContact"
+        class="normal-contact"
+    ></div>
+
+
+    <div class="normal-section">
+
+        <div class="normal-title-section">
+            Professional Summary
+        </div>
+
+        <div
+            id="normalSummary"
+            class="normal-text"
+        ></div>
+
+    </div>
+
+
+    <div
+        id="normalExperienceSection"
+        class="normal-section"
+    >
+
+        <div class="normal-title-section">
+            Experience
+        </div>
+
+        <div
+            id="normalExperience"
+            class="normal-text"
+        ></div>
+
+    </div>
+
+
+    <div
+        id="normalEducationSection"
+        class="normal-section"
+    >
+
+        <div class="normal-title-section">
+            Education
+        </div>
+
+        <div
+            id="normalEducation"
+            class="normal-text"
+        ></div>
+
+    </div>
+
+
+    <div
+        id="normalSkillsSection"
+        class="normal-section"
+    >
+
+        <div class="normal-title-section">
+            Skills
+        </div>
+
+        <div
+            id="normalSkills"
+            class="normal-text"
+        ></div>
+
+    </div>
+
+</div>
+
+
+</div>
+
+
+<script>
+
+/* =========================================================
+   SUPABASE
+========================================================= */
+
+const SUPABASE_URL =
+    "https://wkkekfrfuuhsmifgddqr.supabase.co";
+
+
+/*
+ KEEP YOUR CURRENT WORKING PUBLISHABLE KEY HERE.
+*/
+
+const SUPABASE_KEY =
+    "YOUR_CURRENT_PUBLISHABLE_KEY";
+
+
+const supabaseClient =
+    window.supabase.createClient(
+        SUPABASE_URL,
+        SUPABASE_KEY
+    );
+
+
+/* =========================================================
+   HELPERS
+========================================================= */
+
+function escapeHTML(value) {
+
+    if (
+        value === null ||
+        value === undefined
+    ) {
+        return "";
+    }
+
+    return String(value)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+}
+
+
+function getCVId() {
+
+    const params =
+        new URLSearchParams(
+            window.location.search
+        );
+
+    return params.get("id");
+}
+
+
+function goBack() {
+
+    window.location.href =
+        "dashboard.html";
+}
+
+
+function printCV() {
+
+    window.print();
+}
+
+
+function showError(message) {
+
+    document.getElementById(
+        "loading"
+    ).style.display = "none";
+
+    document.getElementById(
+        "previewWrapper"
+    ).style.display = "none";
+
+    document.getElementById(
+        "error"
+    ).style.display = "block";
+
+    document.getElementById(
+        "errorMessage"
+    ).textContent =
+        message;
+}
+
+
+function showSection(
+    id,
+    show
+) {
+
+    const element =
+        document.getElementById(id);
+
+    if (!element) return;
+
+    if (show) {
+
+        element.classList.add("show");
+
+    } else {
+
+        element.classList.remove("show");
+
+    }
+}
+
+
+/* =========================================================
+   LIST PARSER
+========================================================= */
+
+function parseList(value) {
+
+    if (!value) {
+        return [];
+    }
+
+    return String(value)
+        .split(/\n|•|,/)
+        .map(item => item.trim())
+        .filter(Boolean);
+}
+
+
+/* =========================================================
+   STRENGTHS
+========================================================= */
+
+function renderStrengths(value) {
+
+    const list =
+        parseList(value);
+
+    const container =
+        document.getElementById(
+            "strengths"
+        );
+
+    container.innerHTML =
+        list.map(item => `
+
+            <div class="strength">
+                ${escapeHTML(item)}
+            </div>
+
+        `).join("");
+
+    showSection(
+        "strengthSection",
+        list.length > 0
+    );
+}
+
+
+/* =========================================================
+   QUALITIES
+========================================================= */
+
+function renderQualities(value) {
+
+    const list =
+        parseList(value);
+
+    const container =
+        document.getElementById(
+            "qualities"
+        );
+
+    container.innerHTML =
+        list.map(item => `
+
+            <div class="quality">
+                ${escapeHTML(item)}
+            </div>
+
+        `).join("");
+
+    showSection(
+        "qualitiesSection",
+        list.length > 0
+    );
+}
+
+
+/* =========================================================
+   TRAINING
+========================================================= */
+
+function renderTraining(
+    personal,
+    team
+) {
+
+    const personalList =
+        parseList(personal);
+
+    const teamList =
+        parseList(team);
+
+
+    document.getElementById(
+        "personalTraining"
+    ).innerHTML =
+        personalList.map(item => `
+
+            <li>
+                ${escapeHTML(item)}
+            </li>
+
+        `).join("");
+
+
+    document.getElementById(
+        "teamTraining"
+    ).innerHTML =
+        teamList.map(item => `
+
+            <li>
+                ${escapeHTML(item)}
+            </li>
+
+        `).join("");
+
+
+    document.getElementById(
+        "personalTrainingCard"
+    ).style.display =
+        personalList.length
+            ? "block"
+            : "none";
+
+
+    document.getElementById(
+        "teamTrainingCard"
+    ).style.display =
+        teamList.length
+            ? "block"
+            : "none";
+
+
+    showSection(
+        "trainingSection",
+        personalList.length ||
+        teamList.length
+    );
+}
+
+
+/* =========================================================
+   ATTRIBUTES
+========================================================= */
+
+function renderAttributes(data) {
+
+    const attributes = [
+
+        {
+            name: "Technical",
+            value: data.technical,
+            score: 82
+        },
+
+        {
+            name: "Physical",
+            value: data.physical,
+            score: 78
+        },
+
+        {
+            name: "Tactical",
+            value: data.tactical,
+            score: 80
+        },
+
+        {
+            name: "Mental",
+            value: data.mental,
+            score: 85
+        }
+
+    ];
+
+
+    const container =
+        document.getElementById(
+            "attributes"
+        );
+
+
+    const available =
+        attributes.filter(
+            item => item.value
+        );
+
+
+    container.innerHTML =
+        available.map(item => `
+
+            <div class="attribute">
+
+                <div class="attribute-header">
+
+                    <span class="attribute-name">
+                        ${item.name}
+                    </span>
+
+                    <span class="attribute-value">
+                        ${item.score}%
+                    </span>
+
+                </div>
+
+                <div class="attribute-track">
+
+                    <div
+                        class="attribute-fill"
+                        style="width:${item.score}%"
+                    ></div>
+
+                </div>
+
+                <div
+                    class="career-text"
+                    style="margin-top:4px;"
+                >
+                    ${escapeHTML(item.value)}
+                </div>
+
+            </div>
+
+        `).join("");
+
+
+    showSection(
+        "attributesSection",
+        available.length > 0
+    );
+}
+
+
+/* =========================================================
+   CAREER HISTORY
+========================================================= */
+
+function renderCareerHistory(
+    data
+) {
+
+    const container =
+        document.getElementById(
+            "careerHistory"
+        );
+
+    let html = "";
+
+
+    if (data.club) {
+
+        html += `
+
+            <div class="career-item">
+
+                <div class="career-title">
+                    Current Club / Academy
+                </div>
+
+                <div class="career-text">
+                    ${escapeHTML(data.club)}
+                </div>
+
+            </div>
+
+        `;
+
+    }
+
+
+    if (data.previousClubs) {
+
+        html += `
+
+            <div class="career-item">
+
+                <div class="career-title">
+                    Previous Clubs / Academies
+                </div>
+
+                <div class="career-text">
+                    ${escapeHTML(data.previousClubs)}
+                </div>
+
+            </div>
+
+        `;
+
+    }
+
+
+    container.innerHTML =
+        html;
+
+
+    showSection(
+        "careerSection",
+        html !== ""
+    );
+}
+
+
+/* =========================================================
+   FOOTBALL RENDER
+========================================================= */
+
+function renderFootball(
+    cv
+) {
+
+    const data =
+        cv.career_data || {};
+
+
+    /* NAME */
+
+    document.getElementById(
+        "playerName"
+    ).innerHTML =
+        escapeHTML(
+            cv.full_name ||
+            "PLAYER NAME"
+        );
+
+
+    /* POSITION */
+
+    document.getElementById(
+        "playerPosition"
+    ).textContent =
+        data.position ||
+        cv.professional_title ||
+        "FOOTBALL PLAYER";
+
+
+    /* TAGLINE */
+
+    document.getElementById(
+        "playerTagline"
+    ).textContent =
+        cv.summary ||
+        "Dedicated footballer focused on continuous development and performance.";
+
+
+    /* INFO */
+
+    document.getElementById(
+        "infoDob"
+    ).textContent =
+        data.dob || "—";
+
+
+    document.getElementById(
+        "infoPosition"
+    ).textContent =
+        data.position || "—";
+
+
+    document.getElementById(
+        "infoFoot"
+    ).textContent =
+        data.foot || "—";
+
+
+    document.getElementById(
+        "infoHeight"
+    ).textContent =
+        data.height || "—";
+
+
+    document.getElementById(
+        "infoNationality"
+    ).textContent =
+        data.nationality || "—";
+
+
+    document.getElementById(
+        "infoSecondary"
+    ).textContent =
+        data.secondaryPosition || "—";
+
+
+    document.getElementById(
+        "infoClub"
+    ).textContent =
+        data.club || "—";
+
+
+    document.getElementById(
+        "infoLocation"
+    ).textContent =
+        cv.location || "—";
+
+
+    /* PROFILE */
+
+    document.getElementById(
+        "profileText"
+    ).textContent =
+        cv.summary || "";
+
+
+    showSection(
+        "profileSection",
+        !!cv.summary
+    );
+
+
+    /* STRENGTHS */
+
+    /*
+       The current builder does not yet have a
+       separate "strengths" field.
+
+       We therefore use the technical/playing
+       style information if available.
+    */
+
+    const strengths = [];
+
+    if (data.technical) {
+        strengths.push(
+            data.technical
+        );
+    }
+
+    if (data.playingStyle) {
+        strengths.push(
+            data.playingStyle
+        );
+    }
+
+    if (data.tactical) {
+        strengths.push(
+            data.tactical
+        );
+    }
+
+    renderStrengths(
+        strengths.join("\n")
+    );
+
+
+    /* TRAINING */
+
+    renderTraining(
+        "",
+        ""
+    );
+
+
+    /* PLAYING STYLE */
+
+    document.getElementById(
+        "playingStyle"
+    ).textContent =
+        data.playingStyle || "";
+
+
+    showSection(
+        "playingStyleSection",
+        !!data.playingStyle
+    );
+
+
+    /* QUALITIES */
+
+    const qualities = [];
+
+    if (data.mental) {
+        qualities.push(
+            data.mental
+        );
+    }
+
+    if (data.physical) {
+        qualities.push(
+            data.physical
+        );
+    }
+
+    if (data.tactical) {
+        qualities.push(
+            data.tactical
+        );
+    }
+
+    renderQualities(
+        qualities.join("\n")
+    );
+
+
+    /* ATTRIBUTES */
+
+    renderAttributes(data);
+
+
+    /* CAREER */
+
+    renderCareerHistory(data);
+
+
+    /* ACHIEVEMENTS */
+
+    document.getElementById(
+        "achievements"
+    ).textContent =
+        data.achievements || "";
+
+
+    showSection(
+        "achievementsSection",
+        !!data.achievements
+    );
+
+
+    /* STATS */
+
+    document.getElementById(
+        "matches"
+    ).textContent =
+        data.matches || "Not provided";
+
+
+    document.getElementById(
+        "goals"
+    ).textContent =
+        data.goals || "Not provided";
+
+
+    document.getElementById(
+        "assists"
+    ).textContent =
+        data.assists || "Not provided";
+
+
+    document.getElementById(
+        "competitions"
+    ).textContent =
+        data.competitions || "Not provided";
+
+
+    showSection(
+        "statsSection",
+        data.matches ||
+        data.goals ||
+        data.assists ||
+        data.competitions
+    );
+
+
+    /* CAREER GOALS */
+
+    document.getElementById(
+        "careerGoals"
+    ).textContent =
+        data.careerGoals || "";
+
+
+    showSection(
+        "goalsSection",
+        !!data.careerGoals
+    );
+
+
+    /* TRIALS */
+
+    document.getElementById(
+        "trials"
+    ).textContent =
+        data.trials || "";
+
+
+    document.getElementById(
+        "trialsRow"
+    ).style.display =
+        data.trials
+            ? "block"
+            : "none";
+
+
+    /* VIDEO */
+
+    const video =
+        document.getElementById(
+            "video"
+        );
+
+
+    if (data.video) {
+
+        video.innerHTML = `
+
+            <a
+                href="${escapeHTML(data.video)}"
+                target="_blank"
+                rel="noopener noreferrer"
+            >
+                Watch Highlight Video →
+            </a>
+
+        `;
+
+    } else {
+
+        video.textContent =
+            "";
+
+    }
+
+
+    document.getElementById(
+        "videoRow"
+    ).style.display =
+        data.video
+            ? "block"
+            : "none";
+
+
+    /* REFERENCES */
+
+    document.getElementById(
+        "references"
+    ).textContent =
+        data.references || "";
+
+
+    document.getElementById(
+        "referencesRow"
+    ).style.display =
+        data.references
+            ? "block"
+            : "none";
+
+
+    showSection(
+        "recruitmentSection",
+        data.trials ||
+        data.video ||
+        data.references
+    );
+
+
+    /* CONTACT */
+
+    document.getElementById(
+        "contactEmail"
+    ).textContent =
+        cv.email || "—";
+
+
+    document.getElementById(
+        "contactPhone"
+    ).textContent =
+        cv.phone || "—";
+
+
+    document.getElementById(
+        "contactLocation"
+    ).textContent =
+        cv.location || "—";
+
+
+    document.getElementById(
+        "contactClub"
+    ).textContent =
+        data.club || "—";
+
+}
+
+
+/* =========================================================
+   NORMAL CV
+========================================================= */
+
+async function renderNormalCV(
+    cv,
+    cvId
+) {
+
+    document.getElementById(
+        "footballCV"
+    ).style.display =
+        "none";
+
+
+    document.getElementById(
+        "normalCV"
+    ).style.display =
+        "block";
+
+
+    document.getElementById(
+        "normalName"
+    ).textContent =
+        cv.full_name || "";
+
+
+    document.getElementById(
+        "normalTitle"
+    ).textContent =
+        cv.professional_title || "";
+
+
+    document.getElementById(
+        "normalContact"
+    ).textContent =
+        [
+            cv.email,
+            cv.phone,
+            cv.location
+        ]
+        .filter(Boolean)
+        .join(" • ");
+
+
+    document.getElementById(
+        "normalSummary"
+    ).textContent =
+        cv.summary || "";
+
+
+    /* EXPERIENCE */
+
+    const {
+        data: experience
+    } =
+        await supabaseClient
+            .from("experience")
+            .select("*")
+            .eq(
+                "cv_id",
+                cvId
+            );
+
+
+    document.getElementById(
+        "normalExperience"
+    ).textContent =
+        (experience || [])
+            .map(row =>
+                [
+                    row.job_title ||
+                    row.position ||
+                    row.title,
+
+                    row.company,
+
+                    row.description
+                ]
+                .filter(Boolean)
+                .join("\n")
+            )
+            .join("\n\n");
+
+
+    /* EDUCATION */
+
+    const {
+        data: education
+    } =
+        await supabaseClient
+            .from("education")
+            .select("*")
+            .eq(
+                "cv_id",
+                cvId
+            );
+
+
+    document.getElementById(
+        "normalEducation"
+    ).textContent =
+        (education || [])
+            .map(row =>
+                [
+                    row.degree ||
+                    row.course,
+
+                    row.school ||
+                    row.institution,
+
+                    row.start_date,
+                    row.end_date
+                ]
+                .filter(Boolean)
+                .join(" • ")
+            )
+            .join("\n");
+
+
+    /* SKILLS */
+
+    const {
+        data: skills
+    } =
+        await supabaseClient
+            .from("skills")
+            .select("*")
+            .eq(
+                "cv_id",
+                cvId
+            );
+
+
+    document.getElementById(
+        "normalSkills"
+    ).textContent =
+        (skills || [])
+            .map(row =>
+                row.skill ||
+                row.name ||
+                row.skill_name ||
+                ""
+            )
+            .filter(Boolean)
+            .join(" • ");
+
+}
+
+
+/* =========================================================
+   LOAD
+========================================================= */
+
+async function loadCV() {
+
+    const cvId =
+        getCVId();
+
+
+    if (!cvId) {
+
+        showError(
+            "No CV ID was provided."
+        );
+
+        return;
+
+    }
+
+
+    try {
+
+        /* AUTH */
+
+        const {
+            data: {
+                user
+            },
+            error: authError
+        } =
+            await supabaseClient.auth.getUser();
+
+
+        if (
+            authError ||
+            !user
+        ) {
+
+            window.location.href =
+                "auth.html?mode=login";
+
+            return;
+
+        }
+
+
+        /* CV */
+
+        const {
+            data: cv,
+            error: cvError
+        } =
+            await supabaseClient
+                .from("cvs")
+                .select("*")
+                .eq(
+                    "id",
+                    cvId
+                )
+                .eq(
+                    "user_id",
+                    user.id
+                )
+                .single();
+
+
+        if (cvError) {
+            throw cvError;
+        }
+
+
+        if (!cv) {
+
+            throw new Error(
+                "CV not found."
+            );
+
+        }
+
+
+        const careerType =
+            cv.career_type ||
+            "general";
+
+
+        if (
+            careerType ===
+            "football"
+        ) {
+
+            document.getElementById(
+                "footballCV"
+            ).style.display =
+                "block";
+
+
+            document.getElementById(
+                "normalCV"
+            ).style.display =
+                "none";
+
+
+            renderFootball(cv);
+
+        } else {
+
+            await renderNormalCV(
+                cv,
+                cvId
+            );
+
+        }
+
+
+        document.getElementById(
+            "loading"
+        ).style.display =
+            "none";
+
+
+        document.getElementById(
+            "previewWrapper"
+        ).style.display =
+            "block";
+
+    }
+
+    catch (error) {
+
+        console.error(
+            error
+        );
+
+        showError(
+            error.message ||
+            "Unable to load your CV."
+        );
+
+    }
+
+}
+
+
+/* =========================================================
+   START
+========================================================= */
+
+loadCV();
+
+</script>
+
+</body>
+</html>
