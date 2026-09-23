@@ -1676,3 +1676,2221 @@ NAIJACV • FOOTBALL PLAYER PROFILE
 </div>
 
 </div>
+<script>
+/* ==========================================
+   NAIJACV BUILDER - PART 3
+   SUPABASE + SAVE + LOAD + PHOTO + PREVIEW
+========================================== */
+
+const SUPABASE_URL =
+  "https://wkkekfrfuuhsmifgddqr.supabase.co";
+
+/*
+  Keep the publishable key that is already in
+  your existing builder-v2.html here.
+*/
+const SUPABASE_KEY =
+  "sb_publishable_X0hCcFAvsC6rlepbtgxhig_hcXMtPyA";
+
+const { createClient } =
+  supabase.createClient(
+    SUPABASE_URL,
+    SUPABASE_KEY
+  );
+
+
+let currentUser = null;
+let currentCVId = null;
+
+let selectedCareer =
+  localStorage.getItem("naijacv_career") || "general";
+
+let selectedPhotoFile = null;
+let currentPhotoPath = null;
+
+
+/* ==========================================
+   CAREER INFORMATION
+========================================== */
+
+const careerInfo = {
+
+  football: {
+    name: "Football CV",
+    description:
+      "Create a professional football player profile for clubs, academies, scouts and trials."
+  },
+
+  professional: {
+    name: "Professional CV",
+    description:
+      "Create a professional CV for jobs and workplace opportunities."
+  },
+
+  student: {
+    name: "Student / Graduate CV",
+    description:
+      "Create a CV for students, graduates, internships and entry-level opportunities."
+  },
+
+  tech: {
+    name: "Tech CV",
+    description:
+      "Create a CV for software, technology and digital careers."
+  },
+
+  creative: {
+    name: "Creative CV",
+    description:
+      "Create a CV for creative, media, design and content careers."
+  },
+
+  general: {
+    name: "General CV",
+    description:
+      "Create a professional CV for general opportunities."
+  }
+
+};
+
+
+/* ==========================================
+   INITIALIZATION
+========================================== */
+
+document.addEventListener("DOMContentLoaded", async () => {
+
+  updateCareerVisibility();
+
+  updateCV();
+
+  await checkUser();
+
+});
+
+
+/* ==========================================
+   CHECK USER
+========================================== */
+
+async function checkUser() {
+
+  const {
+    data,
+    error
+  } = await supabase.auth.getUser();
+
+  if (error || !data.user) {
+
+    window.location.href =
+      "auth.html?mode=login";
+
+    return;
+
+  }
+
+  currentUser = data.user;
+
+  const emailElement =
+    document.getElementById("userEmail");
+
+  if (emailElement) {
+    emailElement.textContent =
+      currentUser.email || "";
+  }
+
+
+  const params =
+    new URLSearchParams(window.location.search);
+
+  const id = params.get("id");
+
+  if (id) {
+
+    currentCVId = id;
+
+    await loadCV(id);
+
+  }
+
+}
+
+
+/* ==========================================
+   CAREER SELECTION
+========================================== */
+
+function selectCareer(career) {
+
+  selectedCareer = career;
+
+  localStorage.setItem(
+    "naijacv_career",
+    career
+  );
+
+  updateCareerVisibility();
+
+  updateCV();
+
+}
+
+
+function updateCareerVisibility() {
+
+  document
+    .querySelectorAll(".career-card")
+    .forEach(card => {
+
+      card.classList.toggle(
+        "selected",
+        card.dataset.career === selectedCareer
+      );
+
+    });
+
+
+  const info =
+    careerInfo[selectedCareer] ||
+    careerInfo.general;
+
+
+  const careerText =
+    document.getElementById(
+      "selectedCareerText"
+    );
+
+  const description =
+    document.getElementById(
+      "careerDescription"
+    );
+
+
+  if (careerText) {
+    careerText.textContent =
+      info.name;
+  }
+
+
+  if (description) {
+    description.textContent =
+      info.description;
+  }
+
+
+  const footballFields =
+    document.getElementById(
+      "footballFields"
+    );
+
+  const genericFields =
+    document.getElementById(
+      "genericCareerFields"
+    );
+
+
+  const footballPreview =
+    document.getElementById(
+      "footballPreview"
+    );
+
+  const normalPreview =
+    document.getElementById(
+      "normalPreview"
+    );
+
+
+  if (selectedCareer === "football") {
+
+    footballFields.classList.add("show");
+
+    genericFields.style.display = "none";
+
+    footballPreview.classList.add("show");
+
+    normalPreview.style.display = "none";
+
+    document.getElementById(
+      "summaryLabel"
+    ).textContent =
+      "Football Profile";
+
+  } else {
+
+    footballFields.classList.remove("show");
+
+    genericFields.style.display = "block";
+
+    footballPreview.classList.remove("show");
+
+    normalPreview.style.display = "block";
+
+    document.getElementById(
+      "summaryLabel"
+    ).textContent =
+      "Professional Summary";
+
+  }
+
+}
+
+
+/* ==========================================
+   HELPERS
+========================================== */
+
+function value(id) {
+
+  const element =
+    document.getElementById(id);
+
+  return element
+    ? element.value.trim()
+    : "";
+
+}
+
+
+function setValue(id, val) {
+
+  const element =
+    document.getElementById(id);
+
+  if (element) {
+    element.value =
+      val || "";
+  }
+
+}
+
+
+function displayValue(value, fallback = "—") {
+
+  return value &&
+    String(value).trim()
+    ? String(value).trim()
+    : fallback;
+
+}
+
+
+function escapeHTML(value) {
+
+  if (value === null ||
+      value === undefined) {
+
+    return "";
+
+  }
+
+  return String(value)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+
+}
+
+
+/* ==========================================
+   FOOTBALL DATA
+========================================== */
+
+function getFootballData() {
+
+  return {
+
+    photoPath:
+      currentPhotoPath || "",
+
+    dob:
+      value("footballDob"),
+
+    nationality:
+      value("footballNationality"),
+
+    height:
+      value("footballHeight"),
+
+    position:
+      value("footballPosition"),
+
+    secondaryPosition:
+      value("footballSecondaryPosition"),
+
+    foot:
+      value("footballFoot"),
+
+    club:
+      value("footballClub"),
+
+    location:
+      value("location"),
+
+    matches:
+      value("footballMatches"),
+
+    goals:
+      value("footballGoals"),
+
+    assists:
+      value("footballAssists"),
+
+    strengths:
+      value("footballStrengths"),
+
+    qualities:
+      value("footballQualities"),
+
+    careerObjective:
+      value("footballCareerObjective"),
+
+    previousClubs:
+      value("footballPreviousClubs"),
+
+    competitions:
+      value("footballCompetitions"),
+
+    achievements:
+      value("footballAchievements"),
+
+    playingStyle:
+      value("footballPlayingStyle"),
+
+    personalTraining:
+      value("footballPersonalTraining"),
+
+    teamTraining:
+      value("footballTeamTraining"),
+
+    trainingFocus:
+      value("footballTrainingFocus"),
+
+    technical:
+      value("footballTechnical"),
+
+    physical:
+      value("footballPhysical"),
+
+    tactical:
+      value("footballTactical"),
+
+    mental:
+      value("footballMental"),
+
+    trials:
+      value("footballTrials"),
+
+    availability:
+      value("footballAvailability"),
+
+    trialLocation:
+      value("footballTrialLocation"),
+
+    video:
+      value("footballVideo"),
+
+    links:
+      value("footballLinks"),
+
+    references:
+      value("footballReferences"),
+
+    languages:
+      value("footballLanguages"),
+
+    footballEducation:
+      value("footballEducation"),
+
+    matchHighlights:
+      value("footballMatchHighlights")
+
+  };
+
+}
+
+
+/* ==========================================
+   LOAD FOOTBALL DATA
+========================================== */
+
+function loadFootballData(data) {
+
+  data = data || {};
+
+  setValue(
+    "footballDob",
+    data.dob
+  );
+
+  setValue(
+    "footballNationality",
+    data.nationality
+  );
+
+  setValue(
+    "footballHeight",
+    data.height
+  );
+
+  setValue(
+    "footballPosition",
+    data.position
+  );
+
+  setValue(
+    "footballSecondaryPosition",
+    data.secondaryPosition
+  );
+
+  setValue(
+    "footballFoot",
+    data.foot
+  );
+
+  setValue(
+    "footballClub",
+    data.club
+  );
+
+  setValue(
+    "footballMatches",
+    data.matches
+  );
+
+  setValue(
+    "footballGoals",
+    data.goals
+  );
+
+  setValue(
+    "footballAssists",
+    data.assists
+  );
+
+  setValue(
+    "footballStrengths",
+    data.strengths
+  );
+
+  setValue(
+    "footballQualities",
+    data.qualities
+  );
+
+  setValue(
+    "footballCareerObjective",
+    data.careerObjective
+  );
+
+  setValue(
+    "footballPreviousClubs",
+    data.previousClubs
+  );
+
+  setValue(
+    "footballCompetitions",
+    data.competitions
+  );
+
+  setValue(
+    "footballAchievements",
+    data.achievements
+  );
+
+  setValue(
+    "footballPlayingStyle",
+    data.playingStyle
+  );
+
+  setValue(
+    "footballPersonalTraining",
+    data.personalTraining
+  );
+
+  setValue(
+    "footballTeamTraining",
+    data.teamTraining
+  );
+
+  setValue(
+    "footballTrainingFocus",
+    data.trainingFocus
+  );
+
+  setValue(
+    "footballTechnical",
+    data.technical
+  );
+
+  setValue(
+    "footballPhysical",
+    data.physical
+  );
+
+  setValue(
+    "footballTactical",
+    data.tactical
+  );
+
+  setValue(
+    "footballMental",
+    data.mental
+  );
+
+  setValue(
+    "footballTrials",
+    data.trials
+  );
+
+  setValue(
+    "footballAvailability",
+    data.availability
+  );
+
+  setValue(
+    "footballTrialLocation",
+    data.trialLocation
+  );
+
+  setValue(
+    "footballVideo",
+    data.video
+  );
+
+  setValue(
+    "footballLinks",
+    data.links
+  );
+
+  setValue(
+    "footballReferences",
+    data.references
+  );
+
+  setValue(
+    "footballLanguages",
+    data.languages
+  );
+
+  setValue(
+    "footballEducation",
+    data.footballEducation
+  );
+
+  setValue(
+    "footballMatchHighlights",
+    data.matchHighlights
+  );
+
+
+  currentPhotoPath =
+    data.photoPath || "";
+
+  updatePhotoPreviewFromPath();
+
+}
+
+
+/* ==========================================
+   PHOTO UPLOAD
+========================================== */
+
+function handlePhoto(event) {
+
+  const file =
+    event.target.files &&
+    event.target.files[0];
+
+  if (!file) {
+    return;
+  }
+
+
+  const allowedTypes = [
+    "image/jpeg",
+    "image/png",
+    "image/webp"
+  ];
+
+
+  if (!allowedTypes.includes(file.type)) {
+
+    showStatus(
+      "Please choose a JPG, PNG or WebP image.",
+      "error"
+    );
+
+    event.target.value = "";
+
+    return;
+  }
+
+
+  if (file.size > 5 * 1024 * 1024) {
+
+    showStatus(
+      "Photo must be 5MB or smaller.",
+      "error"
+    );
+
+    event.target.value = "";
+
+    return;
+  }
+
+
+  selectedPhotoFile = file;
+
+
+  const reader =
+    new FileReader();
+
+
+  reader.onload = function(e) {
+
+    const preview =
+      document.getElementById(
+        "photoPreview"
+      );
+
+    preview.innerHTML =
+      `<img src="${e.target.result}" alt="Player photo">`;
+
+  };
+
+
+  reader.readAsDataURL(file);
+
+}
+
+
+/* ==========================================
+   DISPLAY SAVED PHOTO
+========================================== */
+
+function updatePhotoPreviewFromPath() {
+
+  const preview =
+    document.getElementById(
+      "photoPreview"
+    );
+
+  if (!preview) {
+    return;
+  }
+
+
+  if (!currentPhotoPath) {
+
+    preview.innerHTML =
+      "No photo";
+
+    return;
+
+  }
+
+
+  const {
+    data
+  } =
+    supabase.storage
+      .from("cv-photos")
+      .getPublicUrl(
+        currentPhotoPath
+      );
+
+
+  if (data &&
+      data.publicUrl) {
+
+    preview.innerHTML =
+      `<img src="${escapeHTML(data.publicUrl)}" alt="Player photo">`;
+
+  }
+
+}
+
+
+/* ==========================================
+   UPLOAD PHOTO TO SUPABASE
+========================================== */
+
+async function uploadPhoto() {
+
+  if (!selectedPhotoFile) {
+
+    return currentPhotoPath || "";
+
+  }
+
+
+  if (!currentUser) {
+
+    throw new Error(
+      "You must be logged in before uploading a photo."
+    );
+
+  }
+
+
+  const extension =
+    selectedPhotoFile.name
+      .split(".")
+      .pop()
+      .toLowerCase();
+
+
+  const fileName =
+    `${Date.now()}-${Math.random()
+      .toString(36)
+      .substring(2, 9)}.${extension}`;
+
+
+  const filePath =
+    `${currentUser.id}/${fileName}`;
+
+
+  const {
+    error
+  } =
+    await supabase.storage
+      .from("cv-photos")
+      .upload(
+        filePath,
+        selectedPhotoFile,
+        {
+          cacheControl: "3600",
+          upsert: false,
+          contentType:
+            selectedPhotoFile.type
+        }
+      );
+
+
+  if (error) {
+    throw error;
+  }
+
+
+  if (
+    currentPhotoPath &&
+    currentPhotoPath !== filePath
+  ) {
+
+    await supabase.storage
+      .from("cv-photos")
+      .remove([
+        currentPhotoPath
+      ]);
+
+  }
+
+
+  currentPhotoPath =
+    filePath;
+
+  selectedPhotoFile =
+    null;
+
+
+  return filePath;
+
+}
+
+
+/* ==========================================
+   REMOVE PHOTO
+========================================== */
+
+async function removePhoto() {
+
+  try {
+
+    if (currentPhotoPath) {
+
+      await supabase.storage
+        .from("cv-photos")
+        .remove([
+          currentPhotoPath
+        ]);
+
+    }
+
+
+    currentPhotoPath = "";
+
+    selectedPhotoFile = null;
+
+
+    const input =
+      document.getElementById(
+        "footballPhoto"
+      );
+
+    if (input) {
+      input.value = "";
+    }
+
+
+    const preview =
+      document.getElementById(
+        "photoPreview"
+      );
+
+    if (preview) {
+      preview.innerHTML =
+        "No photo";
+    }
+
+
+    updateCV();
+
+
+  } catch (error) {
+
+    console.error(error);
+
+    showStatus(
+      "Could not remove the photo.",
+      "error"
+    );
+
+  }
+
+}
+
+
+/* ==========================================
+   UPDATE LIVE PREVIEW
+========================================== */
+
+function updateCV() {
+
+  updateNormalPreview();
+
+  updateFootballPreview();
+
+}
+
+
+/* ==========================================
+   NORMAL CV PREVIEW
+========================================== */
+
+function updateNormalPreview() {
+
+  const name =
+    displayValue(
+      value("fullName"),
+      "Your Name"
+    );
+
+  const title =
+    displayValue(
+      value("professionalTitle"),
+      "Professional Title"
+    );
+
+  const email =
+    value("email");
+
+  const phone =
+    value("phone");
+
+  const location =
+    value("location");
+
+
+  document.getElementById(
+    "previewName"
+  ).textContent = name;
+
+
+  document.getElementById(
+    "previewTitle"
+  ).textContent = title;
+
+
+  const contact = [
+    email,
+    phone,
+    location
+  ].filter(Boolean).join(" • ");
+
+
+  document.getElementById(
+    "previewContact"
+  ).textContent =
+    contact || "Email • Phone • Location";
+
+
+  document.getElementById(
+    "previewSummary"
+  ).textContent =
+    displayValue(
+      value("summary"),
+      "Your professional summary will appear here."
+    );
+
+
+  document.getElementById(
+    "previewEducation"
+  ).textContent =
+    displayValue(
+      value("education"),
+      "Your education information will appear here."
+    );
+
+
+  document.getElementById(
+    "previewExperience"
+  ).textContent =
+    displayValue(
+      value("experience"),
+      "Your work experience will appear here."
+    );
+
+
+  document.getElementById(
+    "previewSkills"
+  ).textContent =
+    displayValue(
+      value("skills"),
+      "Your skills will appear here."
+    );
+
+}
+
+
+/* ==========================================
+   FOOTBALL PREVIEW
+========================================== */
+
+function updateFootballPreview() {
+
+  const data =
+    getFootballData();
+
+
+  setText(
+    "fpName",
+    displayValue(
+      value("fullName"),
+      "PLAYER NAME"
+    )
+  );
+
+
+  setText(
+    "fpPosition",
+    displayValue(
+      data.position,
+      "FOOTBALL PLAYER"
+    ).toUpperCase()
+  );
+
+
+  setText(
+    "fpClub",
+    displayValue(
+      data.club,
+      "CURRENT CLUB / ACADEMY"
+    )
+  );
+
+
+  setText(
+    "fpDob",
+    formatDate(data.dob)
+  );
+
+
+  setText(
+    "fpNationality",
+    displayValue(data.nationality)
+  );
+
+
+  setText(
+    "fpHeight",
+    displayValue(data.height)
+  );
+
+
+  setText(
+    "fpFoot",
+    displayValue(data.foot)
+  );
+
+
+  setText(
+    "fpPrimaryPosition",
+    displayValue(data.position)
+  );
+
+
+  setText(
+    "fpSecondaryPosition",
+    displayValue(data.secondaryPosition)
+  );
+
+
+  setText(
+    "fpLocation",
+    displayValue(data.location)
+  );
+
+
+  setText(
+    "fpCurrentClub",
+    displayValue(data.club)
+  );
+
+
+  setText(
+    "fpMatches",
+    displayValue(data.matches, "0")
+  );
+
+
+  setText(
+    "fpGoals",
+    displayValue(data.goals, "0")
+  );
+
+
+  setText(
+    "fpAssists",
+    displayValue(data.assists, "0")
+  );
+
+
+  setText(
+    "fpStrengths",
+    displayValue(data.strengths)
+  );
+
+
+  setList(
+    "fpQualities",
+    data.qualities
+  );
+
+
+  setText(
+    "fpLanguages",
+    displayValue(data.languages)
+  );
+
+
+  const contact = [
+    value("email"),
+    value("phone"),
+    data.location
+  ].filter(Boolean).join("\n");
+
+
+  setText(
+    "fpContact",
+    displayValue(contact)
+  );
+
+
+  setText(
+    "fpSummary",
+    displayValue(
+      value("summary")
+    )
+  );
+
+
+  setText(
+    "fpPlayingStyle",
+    displayValue(data.playingStyle)
+  );
+
+
+  setText(
+    "fpTechnical",
+    displayValue(data.technical)
+  );
+
+
+  setText(
+    "fpPhysical",
+    displayValue(data.physical)
+  );
+
+
+  setText(
+    "fpTactical",
+    displayValue(data.tactical)
+  );
+
+
+  setText(
+    "fpMental",
+    displayValue(data.mental)
+  );
+
+
+  setText(
+    "fpPersonalTraining",
+    displayValue(data.personalTraining)
+  );
+
+
+  setText(
+    "fpTeamTraining",
+    displayValue(data.teamTraining)
+  );
+
+
+  setText(
+    "fpTrainingFocus",
+    displayValue(data.trainingFocus)
+  );
+
+
+  setText(
+    "fpFootballEducation",
+    displayValue(data.footballEducation)
+  );
+
+
+  setText(
+    "fpPreviousClubs",
+    displayValue(data.previousClubs)
+  );
+
+
+  setText(
+    "fpCompetitions",
+    displayValue(data.competitions)
+  );
+
+
+  setText(
+    "fpAchievements",
+    displayValue(data.achievements)
+  );
+
+
+  setText(
+    "fpMatchHighlights",
+    displayValue(data.matchHighlights)
+  );
+
+
+  setText(
+    "fpTrials",
+    displayValue(data.trials)
+  );
+
+
+  setText(
+    "fpAvailability",
+    displayValue(data.availability)
+  );
+
+
+  setText(
+    "fpTrialLocation",
+    displayValue(data.trialLocation)
+  );
+
+
+  setText(
+    "fpVideo",
+    displayValue(data.video)
+  );
+
+
+  const linksReferences = [
+    data.links,
+    data.references
+  ].filter(Boolean).join("\n");
+
+
+  setText(
+    "fpLinksReferences",
+    displayValue(linksReferences)
+  );
+
+
+  setText(
+    "fpCareerObjective",
+    displayValue(data.careerObjective)
+  );
+
+
+  updateFootballPhoto();
+
+}
+
+
+/* ==========================================
+   SET TEXT
+========================================== */
+
+function setText(id, text) {
+
+  const element =
+    document.getElementById(id);
+
+  if (element) {
+
+    element.textContent =
+      text || "—";
+
+  }
+
+}
+
+
+/* ==========================================
+   SET LIST
+========================================== */
+
+function setList(id, text) {
+
+  const element =
+    document.getElementById(id);
+
+  if (!element) {
+    return;
+  }
+
+
+  const items =
+    String(text || "")
+      .split(/\n|,/)
+      .map(item => item.trim())
+      .filter(Boolean);
+
+
+  if (!items.length) {
+
+    element.innerHTML =
+      "<li>—</li>";
+
+    return;
+
+  }
+
+
+  element.innerHTML =
+    items
+      .map(item =>
+        `<li>${escapeHTML(item)}</li>`
+      )
+      .join("");
+
+}
+
+
+/* ==========================================
+   FOOTBALL PHOTO PREVIEW
+========================================== */
+
+function updateFootballPhoto() {
+
+  const container =
+    document.getElementById(
+      "fpPhoto"
+    );
+
+  if (!container) {
+    return;
+  }
+
+
+  if (selectedPhotoFile) {
+
+    const reader =
+      new FileReader();
+
+
+    reader.onload =
+      function(e) {
+
+        container.innerHTML =
+          `<img src="${e.target.result}" alt="Player photo">`;
+
+      };
+
+
+    reader.readAsDataURL(
+      selectedPhotoFile
+    );
+
+    return;
+
+  }
+
+
+  if (currentPhotoPath) {
+
+    const {
+      data
+    } =
+    supabase.storage
+      .from("cv-photos")
+      .getPublicUrl(
+        currentPhotoPath
+      );
+
+
+    if (data &&
+        data.publicUrl) {
+
+      container.innerHTML =
+        `<img src="${escapeHTML(data.publicUrl)}" alt="Player photo">`;
+
+      return;
+
+    }
+
+  }
+
+
+  container.innerHTML =
+    "<span>⚽</span>";
+
+}
+
+
+/* ==========================================
+   DATE FORMAT
+========================================== */
+
+function formatDate(date) {
+
+  if (!date) {
+    return "—";
+  }
+
+
+  try {
+
+    const d =
+      new Date(
+        `${date}T00:00:00`
+      );
+
+
+    return d.toLocaleDateString(
+      "en-GB",
+      {
+        day: "2-digit",
+        month: "short",
+        year: "numeric"
+      }
+    );
+
+  } catch {
+
+    return date;
+
+  }
+
+}
+
+
+/* ==========================================
+   LOAD CV
+========================================== */
+
+async function loadCV(id) {
+
+  try {
+
+    showStatus(
+      "Loading CV...",
+      "success"
+    );
+
+
+    const {
+      data: cv,
+      error
+    } =
+      await supabase
+        .from("cvs")
+        .select("*")
+        .eq("id", id)
+        .eq("user_id", currentUser.id)
+        .single();
+
+
+    if (error) {
+      throw error;
+    }
+
+
+    currentCVId =
+      cv.id;
+
+
+    setValue(
+      "cvName",
+      cv.title
+    );
+
+
+    setValue(
+      "fullName",
+      cv.full_name
+    );
+
+
+    setValue(
+      "professionalTitle",
+      cv.professional_title
+    );
+
+
+    setValue(
+      "email",
+      cv.email || currentUser.email
+    );
+
+
+    setValue(
+      "phone",
+      cv.phone
+    );
+
+
+    setValue(
+      "location",
+      cv.location
+    );
+
+
+    setValue(
+      "summary",
+      cv.summary
+    );
+
+
+    selectedCareer =
+      cv.career_type || "general";
+
+
+    localStorage.setItem(
+      "naijacv_career",
+      selectedCareer
+    );
+
+
+    updateCareerVisibility();
+
+
+    if (
+      cv.career_data &&
+      typeof cv.career_data === "object"
+    ) {
+
+      loadFootballData(
+        cv.career_data
+      );
+
+    }
+
+
+    /*
+      Load generic child-table data.
+      This is mainly for normal CVs.
+    */
+
+    await loadGenericData(id);
+
+
+    updateCV();
+
+
+    showStatus(
+      "CV loaded successfully.",
+      "success"
+    );
+
+
+  } catch (error) {
+
+    console.error(
+      "Load CV error:",
+      error
+    );
+
+
+    showStatus(
+      "Could not load this CV.",
+      "error"
+    );
+
+  }
+
+}
+
+
+/* ==========================================
+   LOAD GENERIC CHILD DATA
+========================================== */
+
+async function loadGenericData(cvId) {
+
+  try {
+
+    const education =
+      await supabase
+        .from("education")
+        .select("*")
+        .eq("cv_id", cvId);
+
+
+    if (
+      education.data &&
+      education.data.length
+    ) {
+
+      const row =
+        education.data[0];
+
+      setValue(
+        "education",
+        row.content ||
+        row.description ||
+        row.degree ||
+        ""
+      );
+
+    }
+
+
+    const experience =
+      await supabase
+        .from("experience")
+        .select("*")
+        .eq("cv_id", cvId);
+
+
+    if (
+      experience.data &&
+      experience.data.length
+    ) {
+
+      const row =
+        experience.data[0];
+
+      setValue(
+        "experience",
+        row.content ||
+        row.description ||
+        ""
+      );
+
+    }
+
+
+    const skills =
+      await supabase
+        .from("skills")
+        .select("*")
+        .eq("cv_id", cvId);
+
+
+    if (
+      skills.data &&
+      skills.data.length
+    ) {
+
+      const row =
+        skills.data[0];
+
+      setValue(
+        "skills",
+        row.content ||
+        row.skill ||
+        row.name ||
+        ""
+      );
+
+    }
+
+  } catch (error) {
+
+    console.warn(
+      "Generic data could not be loaded:",
+      error
+    );
+
+  }
+
+}
+
+
+/* ==========================================
+   SAVE CV
+========================================== */
+
+async function saveCV() {
+
+  if (!currentUser) {
+
+    showStatus(
+      "Please log in first.",
+      "error"
+    );
+
+    return;
+
+  }
+
+
+  const title =
+    value("cvName") ||
+    `${value("fullName") || "My"} ${careerInfo[selectedCareer].name}`;
+
+
+  if (!value("fullName")) {
+
+    showStatus(
+      "Please enter your full name.",
+      "error"
+    );
+
+    return;
+
+  }
+
+
+  try {
+
+    showStatus(
+      "Saving CV...",
+      "success"
+    );
+
+
+    /*
+      Upload new photo first.
+    */
+
+    if (
+      selectedCareer === "football" &&
+      selectedPhotoFile
+    ) {
+
+      await uploadPhoto();
+
+    }
+
+
+    const careerData =
+      selectedCareer === "football"
+        ? getFootballData()
+        : {};
+
+
+    const payload = {
+
+      user_id:
+        currentUser.id,
+
+      title:
+
+        title,
+
+      template:
+        "classic",
+
+      career_type:
+        selectedCareer,
+
+      career_data:
+        careerData,
+
+      full_name:
+        value("fullName"),
+
+      professional_title:
+        value("professionalTitle"),
+
+      email:
+        value("email") ||
+        currentUser.email,
+
+      phone:
+        value("phone"),
+
+      location:
+        value("location"),
+
+      summary:
+        value("summary"),
+
+      updated_at:
+        new Date().toISOString()
+
+    };
+
+
+    let savedCV;
+
+
+    /* ======================================
+       UPDATE EXISTING CV
+    ====================================== */
+
+    if (currentCVId) {
+
+      const {
+        data,
+        error
+      } =
+        await supabase
+          .from("cvs")
+          .update(payload)
+          .eq("id", currentCVId)
+          .eq("user_id", currentUser.id)
+          .select()
+          .single();
+
+
+      if (error) {
+        throw error;
+      }
+
+
+      savedCV =
+        data;
+
+    }
+
+
+    /* ======================================
+       CREATE NEW CV
+    ====================================== */
+
+    else {
+
+      const {
+        data,
+        error
+      } =
+        await supabase
+          .from("cvs")
+          .insert(payload)
+          .select()
+          .single();
+
+
+      if (error) {
+        throw error;
+      }
+
+
+      savedCV =
+        data;
+
+
+      currentCVId =
+        savedCV.id;
+
+
+      /*
+        Update browser URL without
+        refreshing the page.
+      */
+
+      window.history.replaceState(
+        {},
+        "",
+        `builder-v2.html?id=${savedCV.id}`
+      );
+
+    }
+
+
+    /*
+      Save generic child tables only
+      for non-football CVs.
+    */
+
+    if (selectedCareer !== "football") {
+
+      await saveGenericData(
+        currentCVId
+      );
+
+    }
+
+
+    showStatus(
+      "CV saved successfully!",
+      "success"
+    );
+
+
+  } catch (error) {
+
+    console.error(
+      "Save CV error:",
+      error
+    );
+
+
+    showStatus(
+      "Could not save CV: " +
+      (error.message || "Unknown error"),
+      "error"
+    );
+
+  }
+
+}
+
+
+/* ==========================================
+   SAVE GENERIC DATA
+========================================== */
+
+async function saveGenericData(cvId) {
+
+  try {
+
+    /*
+      Delete previous rows first.
+    */
+
+    await supabase
+      .from("education")
+      .delete()
+      .eq("cv_id", cvId);
+
+
+    await supabase
+      .from("experience")
+      .delete()
+      .eq("cv_id", cvId);
+
+
+    await supabase
+      .from("skills")
+      .delete()
+      .eq("cv_id", cvId);
+
+
+    /*
+      Education
+    */
+
+    if (value("education")) {
+
+      const {
+        error
+      } =
+        await supabase
+          .from("education")
+          .insert({
+            cv_id: cvId,
+            content: value("education")
+          });
+
+
+      if (error) {
+
+        /*
+          Do not make the whole CV save fail
+          because of an optional child table.
+        */
+
+        console.warn(
+          "Education save warning:",
+          error
+        );
+
+      }
+
+    }
+
+
+    /*
+      Experience
+    */
+
+    if (value("experience")) {
+
+      const {
+        error
+      } =
+        await supabase
+          .from("experience")
+          .insert({
+            cv_id: cvId,
+            content: value("experience")
+          });
+
+
+      if (error) {
+
+        console.warn(
+          "Experience save warning:",
+          error
+        );
+
+      }
+
+    }
+
+
+    /*
+      Skills
+    */
+
+    if (value("skills")) {
+
+      const {
+        error
+      } =
+        await supabase
+          .from("skills")
+          .insert({
+            cv_id: cvId,
+            content: value("skills")
+          });
+
+
+      if (error) {
+
+        console.warn(
+          "Skills save warning:",
+          error
+        );
+
+      }
+
+    }
+
+  } catch (error) {
+
+    console.warn(
+      "Generic data warning:",
+      error
+    );
+
+  }
+
+}
+
+
+/* ==========================================
+   CLEAR FORM
+========================================== */
+
+function clearForm() {
+
+  const confirmed =
+    confirm(
+      "Clear the current form? Unsaved information will be lost."
+    );
+
+
+  if (!confirmed) {
+    return;
+  }
+
+
+  clearFormWithoutConfirm();
+
+}
+
+
+function clearFormWithoutConfirm() {
+
+  document
+    .querySelectorAll(
+      "input, textarea, select"
+    )
+    .forEach(element => {
+
+      /*
+        Do not clear the photo file input
+        through normal value handling.
+      */
+
+      element.value = "";
+
+    });
+
+
+  currentPhotoPath = "";
+
+  selectedPhotoFile = null;
+
+
+  currentCVId = null;
+
+
+  const photoPreview =
+    document.getElementById(
+      "photoPreview"
+    );
+
+  if (photoPreview) {
+
+    photoPreview.innerHTML =
+      "No photo";
+
+  }
+
+
+  localStorage.setItem(
+    "naijacv_career",
+    "general"
+  );
+
+
+  selectedCareer =
+    "general";
+
+
+  updateCareerVisibility();
+
+  updateCV();
+
+
+  window.history.replaceState(
+    {},
+    "",
+    "builder-v2.html"
+  );
+
+
+  showStatus(
+    "Form cleared.",
+    "success"
+  );
+
+}
+
+
+/* ==========================================
+   DASHBOARD
+========================================== */
+
+function goToDashboard() {
+
+  window.location.href =
+    "dashboard.html";
+
+}
+
+
+/* ==========================================
+   LOGOUT
+========================================== */
+
+async function logout() {
+
+  const confirmed =
+    confirm(
+      "Are you sure you want to logout?"
+    );
+
+
+  if (!confirmed) {
+    return;
+  }
+
+
+  await supabase.auth.signOut();
+
+
+  window.location.href =
+    "auth.html?mode=login";
+
+}
+
+
+/* ==========================================
+   STATUS MESSAGE
+========================================== */
+
+function showStatus(
+  message,
+  type = "success"
+) {
+
+  const status =
+    document.getElementById(
+      "status"
+    );
+
+
+  if (!status) {
+    return;
+  }
+
+
+  status.textContent =
+    message;
+
+
+  status.className =
+    `status show ${type}`;
+
+
+  clearTimeout(
+    window.naijaStatusTimer
+  );
+
+
+  window.naijaStatusTimer =
+    setTimeout(() => {
+
+      status.classList.remove(
+        "show"
+      );
+
+    }, 5000);
+
+}
+
+
+/* ==========================================
+   AUTH STATE LISTENER
+========================================== */
+
+supabase.auth.onAuthStateChange(
+  (event, session) => {
+
+    if (
+      event === "SIGNED_OUT" ||
+      !session
+    ) {
+
+      /*
+        Only redirect if the page is no
+        longer authenticated.
+      */
+
+      if (event === "SIGNED_OUT") {
+
+        window.location.href =
+          "auth.html?mode=login";
+
+      }
+
+    }
+
+  }
+);
+
+</script>
+
+</body>
+</html>
