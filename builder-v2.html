@@ -3336,18 +3336,176 @@ async function loadGenericData(cvId) {
    SAVE CV
 ========================================== */
 
-async function saveCV() {
 
-  if (!currentUser) {
+async function saveCV(){
+
+  // Always verify the current Supabase session before saving
+  const {
+    data: { user },
+    error: authError
+  } = await supabaseClient.auth.getUser();
+
+  if(authError || !user){
 
     showStatus(
-      "Please log in first.",
+      "Your login session could not be found. Please log in again.",
       "error"
     );
 
     return;
-
   }
+
+  // Restore the user into the builder
+  currentUser = user;
+
+  const fullName = val("fullName");
+
+  if(!fullName){
+    showStatus(
+      "Please enter your full name.",
+      "error"
+    );
+    return;
+  }
+
+  if(selectedCareer !== "football"){
+    return saveNormalCV(fullName);
+  }
+
+  showStatus(
+    "Saving your CV...",
+    "success"
+  );
+
+  let uploadedPath = "";
+
+  try{
+
+    if(pendingPhoto){
+      uploadedPath = await uploadPhoto();
+    }
+
+    const data = getFootballData();
+
+    data.photoPath =
+      removeExistingPhoto
+        ? ""
+        : (uploadedPath || existingPhotoPath || "");
+
+    const cvData = {
+      user_id: currentUser.id,
+      title: val("cvName") || "My CV",
+      template: "football-a4",
+      career_type: selectedCareer,
+      career_data: data,
+      full_name: fullName,
+      professional_title: val("professionalTitle"),
+      email: val("email"),
+      phone: val("phone"),
+      location: val("location"),
+      summary: val("summary"),
+      updated_at: new Date().toISOString()
+    };
+
+    let saved;
+    let error;
+
+    if(currentCVId){
+
+      ({
+        data: saved,
+        error
+      } = await supabaseClient
+        .from("cvs")
+        .update(cvData)
+        .eq("id",currentCVId)
+        .eq("user_id",currentUser.id)
+        .select()
+        .single());
+
+    }else{
+
+      ({
+        data: saved,
+        error
+      } = await supabaseClient
+        .from("cvs")
+        .insert(cvData)
+        .select()
+        .single());
+
+    }
+
+    if(error){
+      throw error;
+    }
+
+    const oldPath = existingPhotoPath;
+
+    if(
+      currentCVId &&
+      removeExistingPhoto &&
+      oldPath
+    ){
+      await deletePhoto(oldPath);
+    }
+
+    if(
+      currentCVId &&
+      pendingPhoto &&
+      oldPath
+    ){
+      await deletePhoto(oldPath);
+    }
+
+    existingPhotoPath =
+      data.photoPath;
+
+    pendingPhoto = null;
+    removeExistingPhoto = false;
+
+    currentCVId = saved.id;
+
+    history.replaceState(
+      {},
+      "",
+      `builder-v2.html?id=${encodeURIComponent(currentCVId)}`
+    );
+
+    await saveChildData(currentCVId);
+
+    showStoredPhoto(existingPhotoPath);
+    renderPhotoPreview();
+
+    showStatus(
+      "CV saved successfully! 🎉",
+      "success"
+    );
+
+  }catch(e){
+
+    console.error(e);
+
+    if(uploadedPath){
+      await deletePhoto(uploadedPath);
+    }
+
+    showStatus(
+      "Could not save CV: " + e.message,
+      "error"
+    );
+  }
+}
+  
+
+    
+      
+      
+    
+
+    
+
+  
 
 
   const title =
