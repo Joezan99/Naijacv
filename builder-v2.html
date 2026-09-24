@@ -2140,3 +2140,1494 @@ header{
 </div>
 
 <script>
+/* =========================================================
+   NAIJACV PHASE A — PART 2
+   Supabase + Career Selection + Live Preview + Photo
+   ========================================================= */
+
+
+/* =========================
+   SUPABASE
+   ========================= */
+
+const SUPABASE_URL =
+  "https://wkkekfrfuuhsmifgddqr.supabase.co";
+
+/*
+  IMPORTANT:
+  Put your EXISTING SUPABASE PUBLISHABLE KEY here.
+
+  Do NOT use your secret/service-role key.
+*/
+const SUPABASE_KEY =
+  "sb_publishable_X0hCcFAvsC6rlepbtgxhig_hcXMtPyA";
+
+const supabaseClient =
+  window.supabase.createClient(
+    SUPABASE_URL,
+    SUPABASE_KEY
+  );
+
+
+/* =========================
+   GLOBAL VARIABLES
+   ========================= */
+
+let currentUser = null;
+let currentCVId = null;
+
+let selectedCareer =
+  localStorage.getItem("naijacv_career") || "general";
+
+let existingPhotoPath = "";
+let pendingPhotoFile = null;
+let removeExistingPhoto = false;
+
+
+/* =========================
+   CAREER INFORMATION
+   ========================= */
+
+const careerInfo = {
+
+  football: {
+    name: "Football CV",
+    description:
+      "Create a professional football player profile for academies, clubs, scouts and trials."
+  },
+
+  professional: {
+    name: "Professional CV",
+    description:
+      "Create a clean corporate CV for jobs, companies and professional opportunities."
+  },
+
+  student: {
+    name: "Student / Graduate CV",
+    description:
+      "Create an education-focused CV for students, graduates, internships and entry-level opportunities."
+  },
+
+  tech: {
+    name: "Tech CV",
+    description:
+      "Create a modern CV focused on technology skills, projects, experience and portfolios."
+  },
+
+  creative: {
+    name: "Creative CV",
+    description:
+      "Create a visually focused CV for creative, media, design and portfolio-based careers."
+  },
+
+  general: {
+    name: "General CV",
+    description:
+      "Create a clean professional CV suitable for a wide range of opportunities."
+  }
+
+};
+
+
+/* =========================
+   HELPER
+   ========================= */
+
+function value(id){
+
+  const el = document.getElementById(id);
+
+  return el ? el.value.trim() : "";
+}
+
+
+function setValue(id, val){
+
+  const el = document.getElementById(id);
+
+  if(el){
+    el.value = val ?? "";
+  }
+
+}
+
+
+function safeText(value, fallback = "—"){
+
+  if(
+    value === undefined ||
+    value === null ||
+    String(value).trim() === ""
+  ){
+    return fallback;
+  }
+
+  return String(value);
+}
+
+
+function splitList(text){
+
+  if(!text){
+    return [];
+  }
+
+  return text
+    .split(/[\n,•]+/)
+    .map(item => item.trim())
+    .filter(Boolean);
+}
+
+
+function setText(id, text, fallback = "—"){
+
+  const el = document.getElementById(id);
+
+  if(!el){
+    return;
+  }
+
+  el.textContent =
+    text && String(text).trim()
+      ? text
+      : fallback;
+
+}
+
+
+/* =========================
+   CAREER SELECTION
+   ========================= */
+
+function selectCareer(career){
+
+  selectedCareer = career;
+
+  localStorage.setItem(
+    "naijacv_career",
+    career
+  );
+
+  updateCareerSelection();
+
+  updateCareerVisibility();
+
+  updateLivePreview();
+
+  updateCompletion();
+
+}
+
+
+function updateCareerSelection(){
+
+  document
+    .querySelectorAll(".career-card")
+    .forEach(card => {
+
+      card.classList.toggle(
+        "selected",
+        card.dataset.career === selectedCareer
+      );
+
+    });
+
+
+  const info =
+    careerInfo[selectedCareer] ||
+    careerInfo.general;
+
+
+  const selectedText =
+    document.getElementById("selectedCareerText");
+
+  const description =
+    document.getElementById("careerDescription");
+
+
+  if(selectedText){
+
+    selectedText.textContent =
+      info.name;
+
+  }
+
+
+  if(description){
+
+    description.textContent =
+      info.description;
+
+  }
+
+
+  const summaryLabel =
+    document.getElementById("summaryLabel");
+
+
+  if(summaryLabel){
+
+    if(selectedCareer === "football"){
+
+      summaryLabel.textContent =
+        "Player Profile";
+
+    }else if(selectedCareer === "student"){
+
+      summaryLabel.textContent =
+        "Profile / Career Objective";
+
+    }else if(selectedCareer === "tech"){
+
+      summaryLabel.textContent =
+        "Developer Profile";
+
+    }else{
+
+      summaryLabel.textContent =
+        "Professional Summary";
+
+    }
+
+  }
+
+}
+
+
+/* =========================
+   CAREER VISIBILITY
+   ========================= */
+
+function updateCareerVisibility(){
+
+  const footballFields =
+    document.getElementById("footballFields");
+
+  const genericFields =
+    document.getElementById("genericCareerFields");
+
+  const footballPreview =
+    document.getElementById("footballPreview");
+
+  const genericPreview =
+    document.getElementById("genericPreview");
+
+
+  if(selectedCareer === "football"){
+
+    if(footballFields){
+      footballFields.classList.add("show");
+    }
+
+    if(genericFields){
+      genericFields.style.display = "none";
+    }
+
+    if(footballPreview){
+      footballPreview.classList.add("show");
+    }
+
+    if(genericPreview){
+      genericPreview.style.display = "none";
+    }
+
+  }else{
+
+    if(footballFields){
+      footballFields.classList.remove("show");
+    }
+
+    if(genericFields){
+      genericFields.style.display = "block";
+    }
+
+    if(footballPreview){
+      footballPreview.classList.remove("show");
+    }
+
+    if(genericPreview){
+      genericPreview.style.display = "block";
+    }
+
+  }
+
+}
+
+
+/* =========================
+   FOOTBALL DATA
+   ========================= */
+
+function getFootballData(){
+
+  return {
+
+    photoPath: existingPhotoPath || "",
+
+    dob:
+      value("footballDob"),
+
+    nationality:
+      value("footballNationality"),
+
+    height:
+      value("footballHeight"),
+
+    foot:
+      value("footballFoot"),
+
+    position:
+      value("footballPosition"),
+
+    secondaryPosition:
+      value("footballSecondaryPosition"),
+
+    club:
+      value("footballClub"),
+
+    matches:
+      value("footballMatches"),
+
+    goals:
+      value("footballGoals"),
+
+    assists:
+      value("footballAssists"),
+
+    strengths:
+      value("footballStrengths"),
+
+    qualities:
+      value("footballQualities"),
+
+    careerObjective:
+      value("footballCareerObjective"),
+
+    previousClubs:
+      value("footballPreviousClubs"),
+
+    competitions:
+      value("footballCompetitions"),
+
+    achievements:
+      value("footballAchievements"),
+
+    playingStyle:
+      value("footballPlayingStyle"),
+
+    personalTraining:
+      value("footballPersonalTraining"),
+
+    teamTraining:
+      value("footballTeamTraining"),
+
+    trainingFocus:
+      value("footballTrainingFocus"),
+
+    technical:
+      value("footballTechnical"),
+
+    physical:
+      value("footballPhysical"),
+
+    tactical:
+      value("footballTactical"),
+
+    mental:
+      value("footballMental"),
+
+    trials:
+      value("footballTrials"),
+
+    availability:
+      value("footballAvailability"),
+
+    trialLocation:
+      value("footballTrialLocation"),
+
+    video:
+      value("footballVideo"),
+
+    links:
+      value("footballLinks"),
+
+    references:
+      value("footballReferences"),
+
+    languages:
+      value("footballLanguages"),
+
+    education:
+      value("footballEducation"),
+
+    matchHighlights:
+      value("footballMatchHighlights")
+
+  };
+
+}
+
+
+/* =========================
+   GENERIC DATA
+   ========================= */
+
+function getGenericData(){
+
+  return {
+
+    education:
+      value("education"),
+
+    experience:
+      value("experience"),
+
+    skills:
+      value("skills")
+
+  };
+
+}
+
+
+/* =========================
+   LIVE PREVIEW
+   ========================= */
+
+function updateCV(){
+
+  updateLivePreview();
+
+  updateCompletion();
+
+}
+
+
+function updateLivePreview(){
+
+  setText(
+    "previewName",
+    value("fullName"),
+    "Your Name"
+  );
+
+  setText(
+    "previewTitle",
+    value("professionalTitle"),
+    "Professional Title"
+  );
+
+
+  const contactParts = [
+    value("email"),
+    value("phone"),
+    value("location")
+  ].filter(Boolean);
+
+
+  setText(
+    "previewContact",
+    contactParts.join(" • "),
+    "Email • Phone • Location"
+  );
+
+
+  setText(
+    "previewSummary",
+    value("summary"),
+    "Your professional summary will appear here."
+  );
+
+
+  setText(
+    "previewEducation",
+    value("education"),
+    "Your education will appear here."
+  );
+
+
+  setText(
+    "previewExperience",
+    value("experience"),
+    "Your work experience will appear here."
+  );
+
+
+  setText(
+    "previewSkills",
+    value("skills"),
+    "Your skills will appear here."
+  );
+
+
+  if(selectedCareer === "football"){
+
+    updateFootballPreview();
+
+  }
+
+}
+
+
+/* =========================
+   FOOTBALL LIVE PREVIEW
+   ========================= */
+
+function updateFootballPreview(){
+
+  const data =
+    getFootballData();
+
+
+  setText(
+    "fpName",
+    value("fullName"),
+    "PLAYER NAME"
+  );
+
+
+  setText(
+    "fpPosition",
+    data.position,
+    "FOOTBALL PLAYER"
+  );
+
+
+  const tagParts = [
+    data.club,
+    data.nationality,
+    data.foot
+      ? data.foot + " foot"
+      : ""
+  ].filter(Boolean);
+
+
+  setText(
+    "fpTag",
+    tagParts.join(" • "),
+    "Player profile"
+  );
+
+
+  setText(
+    "fpDob",
+    data.dob
+  );
+
+  setText(
+    "fpHeight",
+    data.height
+  );
+
+  setText(
+    "fpFoot",
+    data.foot
+  );
+
+  setText(
+    "fpNationality",
+    data.nationality
+  );
+
+  setText(
+    "fpPrimary",
+    data.position
+  );
+
+  setText(
+    "fpSecondary",
+    data.secondaryPosition
+  );
+
+  setText(
+    "fpClub",
+    data.club
+  );
+
+  setText(
+    "fpLocation",
+    value("location")
+  );
+
+
+  setText(
+    "fpEmail",
+    value("email")
+  );
+
+  setText(
+    "fpPhone",
+    value("phone")
+  );
+
+
+  setText(
+    "fpMatches",
+    data.matches || "0",
+    "0"
+  );
+
+  setText(
+    "fpGoals",
+    data.goals || "0",
+    "0"
+  );
+
+  setText(
+    "fpAssists",
+    data.assists || "0",
+    "0"
+  );
+
+
+  setText(
+    "fpProfile",
+    value("summary"),
+    "Player profile will appear here."
+  );
+
+
+  setText(
+    "fpStyle",
+    data.playingStyle,
+    "Playing style will appear here."
+  );
+
+
+  setText(
+    "fpTechnical",
+    data.technical
+  );
+
+  setText(
+    "fpTactical",
+    data.tactical
+  );
+
+  setText(
+    "fpPhysical",
+    data.physical
+  );
+
+  setText(
+    "fpMental",
+    data.mental
+  );
+
+
+  const careerParts = [
+
+    data.previousClubs
+      ? "Previous Clubs:\n" +
+        data.previousClubs
+      : "",
+
+    data.competitions
+      ? "Competitions:\n" +
+        data.competitions
+      : "",
+
+    data.achievements
+      ? "Achievements:\n" +
+        data.achievements
+      : ""
+
+  ].filter(Boolean);
+
+
+  setText(
+    "fpCareer",
+    careerParts.join("\n\n")
+  );
+
+
+  setText(
+    "fpTrials",
+    [
+      data.trials,
+      data.availability,
+      data.trialLocation
+    ].filter(Boolean).join("\n")
+  );
+
+
+  setText(
+    "fpVideo",
+    data.video
+      ? "Highlight video available"
+      : ""
+  );
+
+
+  setText(
+    "fpReferences",
+    data.references
+  );
+
+
+  setText(
+    "fpLinks",
+    data.links
+  );
+
+
+  updateFootballList(
+    "fpStrengthSection",
+    "fpStrengths",
+    data.strengths
+  );
+
+
+  updateFootballList(
+    "fpQualitiesSection",
+    "fpQualities",
+    data.qualities
+  );
+
+
+  updateFootballSection(
+    "fpProfileSection",
+    value("summary")
+  );
+
+
+  updateFootballSection(
+    "fpStyleSection",
+    data.playingStyle
+  );
+
+
+  updateFootballSection(
+    "fpCareerSection",
+    careerParts.join("\n")
+  );
+
+
+  const recruitmentText = [
+    data.trials,
+    data.availability,
+    data.trialLocation,
+    data.video,
+    data.references,
+    data.links
+  ].filter(Boolean).join("");
+
+
+  updateFootballSection(
+    "fpRecruitSection",
+    recruitmentText
+  );
+
+
+  updatePhotoPreview();
+
+}
+
+
+/* =========================
+   FOOTBALL LIST
+   ========================= */
+
+function updateFootballList(
+  sectionId,
+  listId,
+  text
+){
+
+  const section =
+    document.getElementById(sectionId);
+
+  const list =
+    document.getElementById(listId);
+
+
+  if(!section || !list){
+    return;
+  }
+
+
+  list.innerHTML = "";
+
+
+  const items =
+    splitList(text);
+
+
+  if(items.length === 0){
+
+    section.style.display =
+      "none";
+
+    return;
+
+  }
+
+
+  section.style.display =
+    "block";
+
+
+  items.forEach(item => {
+
+    const li =
+      document.createElement("li");
+
+    li.textContent =
+      item;
+
+    list.appendChild(li);
+
+  });
+
+}
+
+
+/* =========================
+   HIDE EMPTY PREVIEW SECTION
+   ========================= */
+
+function updateFootballSection(
+  sectionId,
+  content
+){
+
+  const section =
+    document.getElementById(sectionId);
+
+  if(!section){
+    return;
+  }
+
+
+  section.style.display =
+    content && String(content).trim()
+      ? "block"
+      : "none";
+
+}
+
+
+/* =========================
+   PHOTO HANDLING
+   ========================= */
+
+function handlePhoto(event){
+
+  const file =
+    event.target.files &&
+    event.target.files[0];
+
+
+  if(!file){
+    return;
+  }
+
+
+  const allowedTypes = [
+    "image/jpeg",
+    "image/png",
+    "image/webp"
+  ];
+
+
+  if(!allowedTypes.includes(file.type)){
+
+    showStatus(
+      "Please choose a JPG, PNG or WebP image.",
+      "error"
+    );
+
+    event.target.value = "";
+
+    return;
+  }
+
+
+  if(file.size > 5 * 1024 * 1024){
+
+    showStatus(
+      "Photo must be 5MB or smaller.",
+      "error"
+    );
+
+    event.target.value = "";
+
+    return;
+  }
+
+
+  pendingPhotoFile =
+    file;
+
+  removeExistingPhoto =
+    false;
+
+
+  const reader =
+    new FileReader();
+
+
+  reader.onload = function(e){
+
+    const preview =
+      document.getElementById(
+        "photoPreview"
+      );
+
+    if(!preview){
+      return;
+    }
+
+
+    preview.innerHTML =
+      `<img src="${e.target.result}" alt="Player photo">`;
+
+  };
+
+
+  reader.readAsDataURL(file);
+
+
+  updateCompletion();
+
+}
+
+
+/* =========================
+   REMOVE PHOTO
+   ========================= */
+
+function removePhoto(){
+
+  pendingPhotoFile =
+    null;
+
+  removeExistingPhoto =
+    true;
+
+  existingPhotoPath =
+    "";
+
+
+  const input =
+    document.getElementById(
+      "footballPhoto"
+    );
+
+  if(input){
+    input.value = "";
+  }
+
+
+  const preview =
+    document.getElementById(
+      "photoPreview"
+    );
+
+  if(preview){
+
+    preview.innerHTML =
+      "No photo";
+
+  }
+
+
+  updatePhotoPreview();
+
+  updateCompletion();
+
+}
+
+
+/* =========================
+   PHOTO PREVIEW
+   ========================= */
+
+function updatePhotoPreview(){
+
+  const preview =
+    document.getElementById(
+      "photoPreview"
+    );
+
+  const fpPhoto =
+    document.getElementById(
+      "fpPhoto"
+    );
+
+
+  if(!preview || !fpPhoto){
+    return;
+  }
+
+
+  if(pendingPhotoFile){
+
+    const reader =
+      new FileReader();
+
+
+    reader.onload =
+      function(e){
+
+        const html =
+          `<img src="${e.target.result}" alt="Player photo">`;
+
+        preview.innerHTML =
+          html;
+
+        fpPhoto.innerHTML =
+          html;
+
+      };
+
+
+    reader.readAsDataURL(
+      pendingPhotoFile
+    );
+
+    return;
+
+  }
+
+
+  if(existingPhotoPath){
+
+    getPhotoPublicUrl(
+      existingPhotoPath
+    ).then(url => {
+
+      if(url){
+
+        const html =
+          `<img src="${url}" alt="Player photo">`;
+
+        preview.innerHTML =
+          html;
+
+        fpPhoto.innerHTML =
+          html;
+
+      }
+
+    }).catch(() => {
+
+      preview.innerHTML =
+        "No photo";
+
+      fpPhoto.innerHTML =
+        "⚽";
+
+    });
+
+    return;
+
+  }
+
+
+  preview.innerHTML =
+    "No photo";
+
+  fpPhoto.innerHTML =
+    "⚽";
+
+}
+
+
+/* =========================
+   PHOTO PUBLIC URL
+   ========================= */
+
+function getPhotoPublicUrl(path){
+
+  if(!path){
+    return Promise.resolve("");
+  }
+
+
+  const result =
+    supabaseClient
+      .storage
+      .from("cv-photos")
+      .getPublicUrl(path);
+
+
+  return Promise.resolve(
+    result.data?.publicUrl || ""
+  );
+
+}
+
+
+/* =========================
+   COMPLETION CALCULATOR
+   ========================= */
+
+function updateCompletion(){
+
+  let fields = [];
+  let completed = 0;
+
+
+  if(selectedCareer === "football"){
+
+    fields = [
+
+      value("fullName"),
+
+      value("professionalTitle"),
+
+      value("email"),
+
+      value("phone"),
+
+      value("location"),
+
+      value("summary"),
+
+      value("footballDob"),
+
+      value("footballNationality"),
+
+      value("footballHeight"),
+
+      value("footballFoot"),
+
+      value("footballPosition"),
+
+      value("footballClub"),
+
+      value("footballMatches"),
+
+      value("footballGoals"),
+
+      value("footballAssists"),
+
+      value("footballStrengths"),
+
+      value("footballPlayingStyle"),
+
+      value("footballPreviousClubs"),
+
+      value("footballAchievements"),
+
+      value("footballTechnical"),
+
+      value("footballTactical"),
+
+      value("footballPhysical"),
+
+      value("footballMental"),
+
+      value("footballAvailability"),
+
+      value("footballVideo"),
+
+      value("footballLanguages")
+
+    ];
+
+  }else{
+
+    fields = [
+
+      value("fullName"),
+
+      value("professionalTitle"),
+
+      value("email"),
+
+      value("phone"),
+
+      value("location"),
+
+      value("summary"),
+
+      value("education"),
+
+      value("experience"),
+
+      value("skills")
+
+    ];
+
+  }
+
+
+  completed =
+    fields.filter(Boolean).length;
+
+
+  const percent =
+    fields.length
+      ? Math.round(
+          (completed / fields.length) * 100
+        )
+      : 0;
+
+
+  const percentEl =
+    document.getElementById(
+      "completionPercent"
+    );
+
+  const fillEl =
+    document.getElementById(
+      "completionFill"
+    );
+
+  const noteEl =
+    document.getElementById(
+      "completionNote"
+    );
+
+
+  if(percentEl){
+
+    percentEl.textContent =
+      percent + "%";
+
+  }
+
+
+  if(fillEl){
+
+    fillEl.style.width =
+      percent + "%";
+
+  }
+
+
+  if(noteEl){
+
+    if(percent >= 90){
+
+      noteEl.textContent =
+        "Excellent! Your CV is almost complete.";
+
+    }else if(percent >= 70){
+
+      noteEl.textContent =
+        "Good progress. Add a few more details.";
+
+    }else if(percent >= 40){
+
+      noteEl.textContent =
+        "Your CV is taking shape. Keep going.";
+
+    }else{
+
+      noteEl.textContent =
+        "Start by adding your main personal and career information.";
+
+    }
+
+  }
+
+}
+
+
+/* =========================
+   MOBILE PREVIEW SCROLL
+   ========================= */
+
+function scrollToPreview(){
+
+  const preview =
+    document.querySelector(
+      ".preview-panel"
+    );
+
+  if(preview){
+
+    preview.scrollIntoView({
+      behavior:"smooth",
+      block:"start"
+    });
+
+  }
+
+}
+
+
+/* =========================
+   STATUS MESSAGE
+   ========================= */
+
+function showStatus(
+  message,
+  type = "success"
+){
+
+  const status =
+    document.getElementById(
+      "status"
+    );
+
+  if(!status){
+    return;
+  }
+
+
+  status.textContent =
+    message;
+
+  status.className =
+    "status show " +
+    type;
+
+
+  clearTimeout(
+    window.naijaStatusTimer
+  );
+
+
+  window.naijaStatusTimer =
+    setTimeout(() => {
+
+      status.className =
+        "status";
+
+    }, 5000);
+
+}
+
+
+/* =========================
+   CLEAR FORM
+   ========================= */
+
+function clearForm(){
+
+  const confirmed =
+    confirm(
+      "Clear this CV form? Unsaved information will be lost."
+    );
+
+
+  if(!confirmed){
+    return;
+  }
+
+
+  document
+    .querySelectorAll(
+      "input, textarea, select"
+    )
+    .forEach(el => {
+
+      if(el.id !== "email"){
+        el.value = "";
+      }
+
+    });
+
+
+  existingPhotoPath =
+    "";
+
+  pendingPhotoFile =
+    null;
+
+  removeExistingPhoto =
+    false;
+
+
+  const photoInput =
+    document.getElementById(
+      "footballPhoto"
+    );
+
+  if(photoInput){
+    photoInput.value = "";
+  }
+
+
+  const photoPreview =
+    document.getElementById(
+      "photoPreview"
+    );
+
+  if(photoPreview){
+    photoPreview.innerHTML =
+      "No photo";
+  }
+
+
+  currentCVId =
+    null;
+
+
+  const url =
+    new URL(
+      window.location.href
+    );
+
+  url.searchParams.delete("id");
+
+  window.history.replaceState(
+    {},
+    "",
+    url
+  );
+
+
+  updateCareerSelection();
+
+  updateCareerVisibility();
+
+  updateLivePreview();
+
+  updateCompletion();
+
+
+  showStatus(
+    "Form cleared.",
+    "success"
+  );
+
+}
+
+
+/* =========================
+   DASHBOARD
+   ========================= */
+
+function goToDashboard(){
+
+  window.location.href =
+    "dashboard.html";
+
+}
+
+
+/* =========================
+   LOGOUT
+   ========================= */
+
+async function logout(){
+
+  const result =
+    await supabaseClient.auth.signOut();
+
+
+  if(result.error){
+
+    showStatus(
+      result.error.message,
+      "error"
+    );
+
+    return;
+  }
+
+
+  window.location.href =
+    "auth.html?mode=login";
+
+}
+
+
+/* =========================================================
+   PART 3 WILL CONTINUE HERE
+   ========================================================= */
