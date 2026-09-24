@@ -3238,3 +3238,1738 @@ updateCareerSelection();
 updateLivePreview();
 
 </script>
+<script>
+
+/* =========================================
+   SUPABASE CONFIGURATION
+========================================= */
+
+const SUPABASE_URL =
+  "https://wkkekfrfuuhsmifgddqr.supabase.co";
+
+const SUPABASE_KEY =
+  "sb_publishable_X0hCcFAvsC6rlepbtgxhig_hcXMtPyA";
+
+
+const supabaseClient =
+  window.supabase.createClient(
+    SUPABASE_URL,
+    SUPABASE_KEY
+  );
+
+
+/* =========================================
+   GLOBAL STATE
+========================================= */
+
+let currentUser = null;
+
+let currentCVId = null;
+
+let existingPhotoPath = "";
+
+let pendingPhotoFile = null;
+
+let removeExistingPhoto = false;
+
+
+/* =========================================
+   URL / CV ID
+========================================= */
+
+const urlParams =
+  new URLSearchParams(
+    window.location.search
+  );
+
+
+currentCVId =
+  urlParams.get("id");
+
+
+/* =========================================
+   AUTH CHECK
+========================================= */
+
+async function checkUser(){
+
+  try{
+
+    const {
+      data,
+      error
+    } =
+      await supabaseClient
+        .auth
+        .getUser();
+
+
+    if(error){
+
+      console.error(error);
+
+      showStatus(
+        "Unable to check your login session.",
+        "error"
+      );
+
+      return false;
+
+    }
+
+
+    if(!data || !data.user){
+
+      currentUser = null;
+
+      showStatus(
+        "Please log in first.",
+        "error"
+      );
+
+      return false;
+
+    }
+
+
+    currentUser =
+      data.user;
+
+
+    const email =
+      document.getElementById(
+        "userEmail"
+      );
+
+
+    if(email){
+
+      email.textContent =
+        currentUser.email || "";
+
+    }
+
+
+    return true;
+
+  }catch(error){
+
+    console.error(error);
+
+    showStatus(
+      "Please log in first.",
+      "error"
+    );
+
+    return false;
+
+  }
+
+}
+
+
+/* =========================================
+   GET CURRENT USER
+========================================= */
+
+async function getCurrentUser(){
+
+  const {
+    data,
+    error
+  } =
+    await supabaseClient
+      .auth
+      .getUser();
+
+
+  if(error){
+
+    console.error(error);
+
+    return null;
+
+  }
+
+
+  if(
+    data &&
+    data.user
+  ){
+
+    currentUser =
+      data.user;
+
+    return data.user;
+
+  }
+
+
+  currentUser = null;
+
+  return null;
+
+}
+
+
+/* =========================================
+   PHOTO UPLOAD
+========================================= */
+
+async function uploadPhoto(){
+
+  if(!pendingPhotoFile){
+
+    return existingPhotoPath || "";
+
+  }
+
+
+  const user =
+    await getCurrentUser();
+
+
+  if(!user){
+
+    throw new Error(
+      "Your login session has expired. Please log in again."
+    );
+
+  }
+
+
+  const file =
+    pendingPhotoFile;
+
+
+  const extension =
+    file.name
+      .split(".")
+      .pop()
+      .toLowerCase();
+
+
+  const fileName =
+    `${crypto.randomUUID()}.${extension}`;
+
+
+  const path =
+    `${user.id}/${fileName}`;
+
+
+  const {
+    error
+  } =
+    await supabaseClient
+      .storage
+      .from("cv-photos")
+      .upload(
+        path,
+        file,
+        {
+          cacheControl:"3600",
+          upsert:false
+        }
+      );
+
+
+  if(error){
+
+    console.error(error);
+
+    throw new Error(
+      "Photo upload failed: " +
+      error.message
+    );
+
+  }
+
+
+  return path;
+
+}
+
+
+/* =========================================
+   PHOTO PUBLIC URL
+========================================= */
+
+function getPhotoURL(path){
+
+  if(!path){
+
+    return "";
+
+  }
+
+
+  const {
+    data
+  } =
+    supabaseClient
+      .storage
+      .from("cv-photos")
+      .getPublicUrl(path);
+
+
+  return data &&
+         data.publicUrl
+    ? data.publicUrl
+    : "";
+
+}
+
+
+/* =========================================
+   DELETE PHOTO
+========================================= */
+
+async function deletePhoto(path){
+
+  if(!path) return;
+
+
+  const {
+    error
+  } =
+    await supabaseClient
+      .storage
+      .from("cv-photos")
+      .remove([path]);
+
+
+  if(error){
+
+    console.warn(
+      "Photo deletion failed:",
+      error
+    );
+
+  }
+
+}
+
+
+/* =========================================
+   PHOTO INPUT
+========================================= */
+
+document
+  .getElementById("footballPhoto")
+  .addEventListener(
+    "change",
+    event => {
+
+      const file =
+        event.target.files[0];
+
+
+      if(!file){
+
+        return;
+
+      }
+
+
+      if(
+        file.size >
+        5 * 1024 * 1024
+      ){
+
+        showStatus(
+          "Photo must be 5MB or smaller.",
+          "error"
+        );
+
+        event.target.value = "";
+
+        return;
+
+      }
+
+
+      const allowed =
+        [
+          "image/jpeg",
+          "image/png",
+          "image/webp"
+        ];
+
+
+      if(
+        !allowed.includes(
+          file.type
+        )
+      ){
+
+        showStatus(
+          "Please use JPG, PNG or WebP.",
+          "error"
+        );
+
+        event.target.value = "";
+
+        return;
+
+      }
+
+
+      pendingPhotoFile =
+        file;
+
+
+      removeExistingPhoto =
+        false;
+
+
+      const url =
+        URL.createObjectURL(file);
+
+
+      window.currentPhotoURL =
+        url;
+
+
+      const preview =
+        document.getElementById(
+          "photoPreview"
+        );
+
+
+      preview.innerHTML =
+        `<img src="${url}" alt="Player photo">`;
+
+
+      updateFootballPreview();
+
+
+      showStatus(
+        "Photo selected. Save your CV to upload it.",
+        "success"
+      );
+
+    }
+  );
+
+
+/* =========================================
+   REMOVE PHOTO
+========================================= */
+
+document
+  .getElementById(
+    "removePhotoBtn"
+  )
+  .addEventListener(
+    "click",
+    async () => {
+
+      pendingPhotoFile =
+        null;
+
+
+      const input =
+        document.getElementById(
+          "footballPhoto"
+        );
+
+
+      input.value = "";
+
+
+      if(
+        existingPhotoPath
+      ){
+
+        removeExistingPhoto =
+          true;
+
+      }
+
+
+      existingPhotoPath =
+        "";
+
+
+      window.currentPhotoURL =
+        "";
+
+
+      document.getElementById(
+        "photoPreview"
+      ).textContent =
+        "No photo";
+
+
+      updateFootballPreview();
+
+
+      showStatus(
+        "Photo removed. Save your CV to apply the change.",
+        "success"
+      );
+
+    }
+  );
+
+
+/* =========================================
+   GENERIC CV DATA
+========================================= */
+
+function getGenericData(){
+
+  return {
+
+    education:
+      value("education"),
+
+    experience:
+      value("experience"),
+
+    skills:
+      value("skills")
+
+  };
+
+}
+
+
+/* =========================================
+   SAVE GENERIC DATA
+========================================= */
+
+async function saveGenericChildData(
+  cvId
+){
+
+  /*
+    We keep generic information inside
+    career_data so every CV type can work
+    without depending on a particular
+    child-table column structure.
+  */
+
+  return true;
+
+}
+
+
+/* =========================================
+   BUILD CV PAYLOAD
+========================================= */
+
+function buildCVPayload(
+  user,
+  careerData
+){
+
+  return {
+
+    user_id:
+      user.id,
+
+    title:
+      value("cvName") ||
+      "My CV",
+
+    template:
+      selectedCareer === "football"
+        ? "football-a4"
+        : "classic",
+
+    career_type:
+      selectedCareer,
+
+    career_data:
+      careerData,
+
+    full_name:
+      value("fullName"),
+
+    professional_title:
+      value("professionalTitle"),
+
+    email:
+      value("email") ||
+      user.email ||
+      "",
+
+    phone:
+      value("phone"),
+
+    location:
+      value("location"),
+
+    summary:
+      value("summary"),
+
+    updated_at:
+      new Date().toISOString()
+
+  };
+
+}
+
+
+/* =========================================
+   SAVE CV
+========================================= */
+
+async function saveCV(){
+
+  showStatus(
+    "Checking login session...",
+    "success"
+  );
+
+
+  /*
+    IMPORTANT:
+    Do not depend only on currentUser.
+    Ask Supabase directly.
+  */
+
+  const user =
+    await getCurrentUser();
+
+
+  if(!user){
+
+    showStatus(
+      "Please log in first. Your Supabase session could not be found.",
+      "error"
+    );
+
+    return;
+
+  }
+
+
+  currentUser =
+    user;
+
+
+  const fullName =
+    value("fullName");
+
+
+  if(!fullName){
+
+    showStatus(
+      "Please enter your full name.",
+      "error"
+    );
+
+    return;
+
+  }
+
+
+  showStatus(
+    "Saving your CV...",
+    "success"
+  );
+
+
+  let uploadedPath = "";
+
+
+  try{
+
+    let careerData;
+
+
+    /* =====================================
+       FOOTBALL DATA
+    ===================================== */
+
+    if(
+      selectedCareer === "football"
+    ){
+
+      careerData =
+        getFootballData();
+
+
+      /*
+        Keep the photo path inside
+        career_data.
+      */
+
+      if(pendingPhotoFile){
+
+        uploadedPath =
+          await uploadPhoto();
+
+        careerData.photoPath =
+          uploadedPath;
+
+      }
+
+      else if(
+        removeExistingPhoto
+      ){
+
+        careerData.photoPath =
+          "";
+
+      }
+
+      else{
+
+        careerData.photoPath =
+          existingPhotoPath ||
+          "";
+
+      }
+
+    }
+
+
+    /* =====================================
+       OTHER CV TYPES
+    ===================================== */
+
+    else{
+
+      careerData = {
+
+        education:
+          value("education"),
+
+        experience:
+          value("experience"),
+
+        skills:
+          value("skills"),
+
+        cvType:
+          selectedCareer
+
+      };
+
+    }
+
+
+    const payload =
+      buildCVPayload(
+        user,
+        careerData
+      );
+
+
+    let savedCV;
+
+
+    let error;
+
+
+    /* =====================================
+       UPDATE EXISTING CV
+    ===================================== */
+
+    if(currentCVId){
+
+      const result =
+        await supabaseClient
+          .from("cvs")
+          .update(payload)
+          .eq(
+            "id",
+            currentCVId
+          )
+          .eq(
+            "user_id",
+            user.id
+          )
+          .select()
+          .single();
+
+
+      savedCV =
+        result.data;
+
+      error =
+        result.error;
+
+    }
+
+
+    /* =====================================
+       CREATE NEW CV
+    ===================================== */
+
+    else{
+
+      const result =
+        await supabaseClient
+          .from("cvs")
+          .insert(payload)
+          .select()
+          .single();
+
+
+      savedCV =
+        result.data;
+
+      error =
+        result.error;
+
+    }
+
+
+    if(error){
+
+      throw error;
+
+    }
+
+
+    if(!savedCV){
+
+      throw new Error(
+        "CV was not returned after saving."
+      );
+
+    }
+
+
+    currentCVId =
+      savedCV.id;
+
+
+    /*
+      Remove old photo only after
+      the database has successfully
+      saved the new CV.
+    */
+
+    if(
+      removeExistingPhoto &&
+      existingPhotoPath
+    ){
+
+      await deletePhoto(
+        existingPhotoPath
+      );
+
+    }
+
+
+    /*
+      If a new photo replaced an
+      old photo, delete the old one.
+    */
+
+    if(
+      pendingPhotoFile &&
+      existingPhotoPath &&
+      existingPhotoPath !== uploadedPath
+    ){
+
+      await deletePhoto(
+        existingPhotoPath
+      );
+
+    }
+
+
+    existingPhotoPath =
+      careerData.photoPath ||
+      "";
+
+
+    pendingPhotoFile =
+      null;
+
+
+    removeExistingPhoto =
+      false;
+
+
+    /*
+      Update browser URL without
+      reloading the page.
+    */
+
+    const newURL =
+      `${window.location.pathname}?id=${encodeURIComponent(currentCVId)}`;
+
+
+    window.history.replaceState(
+      {},
+      "",
+      newURL
+    );
+
+
+    /*
+      Display stored photo.
+    */
+
+    if(
+      existingPhotoPath
+    ){
+
+      const publicURL =
+        getPhotoURL(
+          existingPhotoPath
+        );
+
+
+      window.currentPhotoURL =
+        publicURL;
+
+
+      const photoPreview =
+        document.getElementById(
+          "photoPreview"
+        );
+
+
+      if(photoPreview){
+
+        photoPreview.innerHTML =
+          `<img src="${publicURL}" alt="Player photo">`;
+
+      }
+
+
+      updateFootballPreview();
+
+    }
+
+
+    showStatus(
+      "CV saved successfully! 🎉",
+      "success"
+    );
+
+
+  }catch(error){
+
+    console.error(
+      "SAVE ERROR:",
+      error
+    );
+
+
+    /*
+      If the database failed after
+      uploading a new photo, remove
+      the unused uploaded photo.
+    */
+
+    if(uploadedPath){
+
+      await deletePhoto(
+        uploadedPath
+      );
+
+    }
+
+
+    showStatus(
+      "Could not save CV: " +
+      (
+        error.message ||
+        "Unknown error"
+      ),
+      "error"
+    );
+
+  }
+
+}
+
+
+/* =========================================
+   LOAD EXISTING CV
+========================================= */
+
+async function loadCV(){
+
+  if(!currentCVId){
+
+    return;
+
+  }
+
+
+  const user =
+    await getCurrentUser();
+
+
+  if(!user){
+
+    showStatus(
+      "Please log in first.",
+      "error"
+    );
+
+    return;
+
+  }
+
+
+  try{
+
+    showStatus(
+      "Loading your CV...",
+      "success"
+    );
+
+
+    const {
+      data,
+      error
+    } =
+      await supabaseClient
+        .from("cvs")
+        .select("*")
+        .eq(
+          "id",
+          currentCVId
+        )
+        .eq(
+          "user_id",
+          user.id
+        )
+        .single();
+
+
+    if(error){
+
+      throw error;
+
+    }
+
+
+    if(!data){
+
+      throw new Error(
+        "CV not found."
+      );
+
+    }
+
+
+    /*
+      Restore basic fields.
+    */
+
+    setInput(
+      "cvName",
+      data.title
+    );
+
+
+    setInput(
+      "fullName",
+      data.full_name
+    );
+
+
+    setInput(
+      "professionalTitle",
+      data.professional_title
+    );
+
+
+    setInput(
+      "email",
+      data.email || user.email
+    );
+
+
+    setInput(
+      "phone",
+      data.phone
+    );
+
+
+    setInput(
+      "location",
+      data.location
+    );
+
+
+    setInput(
+      "summary",
+      data.summary
+    );
+
+
+    /*
+      Restore career type.
+    */
+
+    if(data.career_type){
+
+      selectedCareer =
+        data.career_type;
+
+      localStorage.setItem(
+        "naijacv_career",
+        selectedCareer
+      );
+
+    }
+
+
+    /*
+      Restore career data.
+    */
+
+    const careerData =
+      data.career_data ||
+      {};
+
+
+    if(
+      selectedCareer === "football"
+    ){
+
+      loadFootballData(
+        careerData
+      );
+
+    }
+
+    else{
+
+      setInput(
+        "education",
+        careerData.education
+      );
+
+      setInput(
+        "experience",
+        careerData.experience
+      );
+
+      setInput(
+        "skills",
+        careerData.skills
+      );
+
+    }
+
+
+    /*
+      Restore stored photo.
+    */
+
+    if(
+      careerData.photoPath
+    ){
+
+      existingPhotoPath =
+        careerData.photoPath;
+
+
+      const publicURL =
+        getPhotoURL(
+          existingPhotoPath
+        );
+
+
+      window.currentPhotoURL =
+        publicURL;
+
+
+      const photoPreview =
+        document.getElementById(
+          "photoPreview"
+        );
+
+
+      if(photoPreview){
+
+        photoPreview.innerHTML =
+          `<img src="${publicURL}" alt="Player photo">`;
+
+      }
+
+    }
+
+
+    updateCareerSelection();
+
+    updateLivePreview();
+
+
+    showStatus(
+      "CV loaded successfully.",
+      "success"
+    );
+
+
+  }catch(error){
+
+    console.error(
+      "LOAD ERROR:",
+      error
+    );
+
+
+    showStatus(
+      "Could not load CV: " +
+      (
+        error.message ||
+        "Unknown error"
+      ),
+      "error"
+    );
+
+  }
+
+}
+
+
+/* =========================================
+   LOAD FOOTBALL DATA
+========================================= */
+
+function loadFootballData(data){
+
+  setInput(
+    "footballDob",
+    data.dob
+  );
+
+
+  setInput(
+    "footballNationality",
+    data.nationality
+  );
+
+
+  setInput(
+    "footballHeight",
+    data.height
+  );
+
+
+  setInput(
+    "footballFoot",
+    data.foot
+  );
+
+
+  setInput(
+    "footballPosition",
+    data.position
+  );
+
+
+  setInput(
+    "footballSecondaryPosition",
+    data.secondaryPosition
+  );
+
+
+  setInput(
+    "footballClub",
+    data.club
+  );
+
+
+  setInput(
+    "footballMatches",
+    data.matches
+  );
+
+
+  setInput(
+    "footballGoals",
+    data.goals
+  );
+
+
+  setInput(
+    "footballAssists",
+    data.assists
+  );
+
+
+  setInput(
+    "footballStrengths",
+    data.strengths
+  );
+
+
+  setInput(
+    "footballQualities",
+    data.qualities
+  );
+
+
+  setInput(
+    "footballCareerObjective",
+    data.careerObjective
+  );
+
+
+  setInput(
+    "footballPreviousClubs",
+    data.previousClubs
+  );
+
+
+  setInput(
+    "footballCompetitions",
+    data.competitions
+  );
+
+
+  setInput(
+    "footballAchievements",
+    data.achievements
+  );
+
+
+  setInput(
+    "footballPlayingStyle",
+    data.playingStyle
+  );
+
+
+  setInput(
+    "footballPersonalTraining",
+    data.personalTraining
+  );
+
+
+  setInput(
+    "footballTeamTraining",
+    data.teamTraining
+  );
+
+
+  setInput(
+    "footballTrainingFocus",
+    data.trainingFocus
+  );
+
+
+  setInput(
+    "footballTechnical",
+    data.technical
+  );
+
+
+  setInput(
+    "footballPhysical",
+    data.physical
+  );
+
+
+  setInput(
+    "footballTactical",
+    data.tactical
+  );
+
+
+  setInput(
+    "footballMental",
+    data.mental
+  );
+
+
+  setInput(
+    "footballTrials",
+    data.trials
+  );
+
+
+  setInput(
+    "footballAvailability",
+    data.availability
+  );
+
+
+  setInput(
+    "footballTrialLocation",
+    data.trialLocation
+  );
+
+
+  setInput(
+    "footballVideo",
+    data.video
+  );
+
+
+  setInput(
+    "footballLinks",
+    data.links
+  );
+
+
+  setInput(
+    "footballReferences",
+    data.references
+  );
+
+
+  setInput(
+    "footballLanguages",
+    data.languages
+  );
+
+
+  setInput(
+    "footballEducation",
+    data.footballEducation
+  );
+
+
+  setInput(
+    "footballMatchHighlights",
+    data.matchHighlights
+  );
+
+}
+
+
+/* =========================================
+   SET INPUT
+========================================= */
+
+function setInput(
+  id,
+  valueToSet
+){
+
+  const el =
+    document.getElementById(id);
+
+
+  if(!el) return;
+
+
+  el.value =
+    valueToSet || "";
+
+}
+
+
+/* =========================================
+   SAVE BUTTON
+========================================= */
+
+document
+  .getElementById("saveBtn")
+  .addEventListener(
+    "click",
+    saveCV
+  );
+
+
+/* =========================================
+   DASHBOARD BUTTON
+========================================= */
+
+document
+  .getElementById("dashboardBtn")
+  .addEventListener(
+    "click",
+    async () => {
+
+      const user =
+        await getCurrentUser();
+
+
+      if(!user){
+
+        showStatus(
+          "Please log in first.",
+          "error"
+        );
+
+        return;
+
+      }
+
+
+      window.location.href =
+        "dashboard.html";
+
+    }
+  );
+
+
+/* =========================================
+   LOGOUT
+========================================= */
+
+document
+  .getElementById("logoutBtn")
+  .addEventListener(
+    "click",
+    async () => {
+
+      try{
+
+        await supabaseClient
+          .auth
+          .signOut();
+
+
+        window.location.href =
+          "auth.html?mode=login";
+
+      }catch(error){
+
+        console.error(error);
+
+        showStatus(
+          "Could not log out.",
+          "error"
+        );
+
+      }
+
+    }
+  );
+
+
+/* =========================================
+   CLEAR FORM
+========================================= */
+
+document
+  .getElementById("clearBtn")
+  .addEventListener(
+    "click",
+    () => {
+
+      const confirmed =
+        confirm(
+          "Clear all information in this CV?"
+        );
+
+
+      if(!confirmed){
+
+        return;
+
+      }
+
+
+      document
+        .querySelectorAll(
+          "input, textarea, select"
+        )
+        .forEach(el => {
+
+          if(
+            el.id === "email"
+          ){
+
+            if(currentUser){
+
+              el.value =
+                currentUser.email || "";
+
+            }
+
+          }
+
+          else{
+
+            el.value = "";
+
+          }
+
+        });
+
+
+      pendingPhotoFile =
+        null;
+
+
+      existingPhotoPath =
+        "";
+
+
+      removeExistingPhoto =
+        false;
+
+
+      window.currentPhotoURL =
+        "";
+
+
+      document.getElementById(
+        "photoPreview"
+      ).textContent =
+        "No photo";
+
+
+      updateLivePreview();
+
+
+      showStatus(
+        "Form cleared.",
+        "success"
+      );
+
+    }
+  );
+
+
+/* =========================================
+   AUTH STATE LISTENER
+========================================= */
+
+supabaseClient
+  .auth
+  .onAuthStateChange(
+    (
+      event,
+      session
+    ) => {
+
+      if(
+        session &&
+        session.user
+      ){
+
+        currentUser =
+          session.user;
+
+
+        const email =
+          document.getElementById(
+            "userEmail"
+          );
+
+
+        if(email){
+
+          email.textContent =
+            currentUser.email || "";
+
+        }
+
+      }
+
+      else{
+
+        currentUser =
+          null;
+
+      }
+
+    }
+  );
+
+
+/* =========================================
+   INITIAL STARTUP
+========================================= */
+
+(async function(){
+
+  /*
+    First verify authentication.
+  */
+
+  const user =
+    await getCurrentUser();
+
+
+  if(!user){
+
+    showStatus(
+      "Please log in first.",
+      "error"
+    );
+
+    return;
+
+  }
+
+
+  /*
+    Show logged-in email.
+  */
+
+  const email =
+    document.getElementById(
+      "userEmail"
+    );
+
+
+  if(email){
+
+    email.textContent =
+      user.email || "";
+
+  }
+
+
+  /*
+    Restore selected CV type.
+  */
+
+  selectedCareer =
+    localStorage.getItem(
+      "naijacv_career"
+    ) || "general";
+
+
+  /*
+    Make sure the selected career
+    is one of our valid choices.
+  */
+
+  const validCareers = [
+    "football",
+    "professional",
+    "student",
+    "tech",
+    "creative",
+    "general"
+  ];
+
+
+  if(
+    !validCareers.includes(
+      selectedCareer
+    )
+  ){
+
+    selectedCareer =
+      "general";
+
+  }
+
+
+  /*
+    Update the UI.
+  */
+
+  updateCareerSelection();
+
+
+  updateLivePreview();
+
+
+  /*
+    If editing an existing CV,
+    load it from Supabase.
+  */
+
+  if(currentCVId){
+
+    await loadCV();
+
+  }
+
+})();
+
+</script>
