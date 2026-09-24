@@ -2185,3 +2185,1056 @@ header{
   </div>
 
 </div>
+<script>
+
+/* =========================================
+   CAREER INFORMATION
+========================================= */
+
+const careerInfo = {
+
+  football: {
+    name: "Football CV",
+    description: "Create a professional football player profile for clubs, academies, scouts and trials.",
+    title: "Football Player"
+  },
+
+  professional: {
+    name: "Professional CV",
+    description: "A clean corporate CV for jobs, internships and professional opportunities.",
+    title: "Professional"
+  },
+
+  student: {
+    name: "Student / Graduate CV",
+    description: "Designed for students, graduates, internships and entry-level opportunities.",
+    title: "Student / Graduate"
+  },
+
+  tech: {
+    name: "Tech CV",
+    description: "A modern CV focused on technology, projects, programming and technical skills.",
+    title: "Tech Professional"
+  },
+
+  creative: {
+    name: "Creative CV",
+    description: "A visually expressive CV for designers, creators, media and creative professionals.",
+    title: "Creative Professional"
+  },
+
+  general: {
+    name: "General CV",
+    description: "A clean, versatile CV suitable for different types of opportunities.",
+    title: "Professional"
+  }
+
+};
+
+
+/* =========================================
+   BASIC HELPERS
+========================================= */
+
+function value(id){
+
+  const el = document.getElementById(id);
+
+  return el ? el.value.trim() : "";
+
+}
+
+
+function setText(id, text, fallback = "—"){
+
+  const el = document.getElementById(id);
+
+  if(!el) return;
+
+  el.textContent = text || fallback;
+
+}
+
+
+function escapeHTML(text){
+
+  return String(text || "")
+    .replace(/&/g,"&amp;")
+    .replace(/</g,"&lt;")
+    .replace(/>/g,"&gt;")
+    .replace(/"/g,"&quot;")
+    .replace(/'/g,"&#039;");
+
+}
+
+
+function splitList(text){
+
+  if(!text) return [];
+
+  return text
+    .split(/\n|,/)
+    .map(item => item.trim())
+    .filter(Boolean);
+
+}
+
+
+function fillList(id,text){
+
+  const el = document.getElementById(id);
+
+  if(!el) return;
+
+  const items = splitList(text);
+
+  el.innerHTML = "";
+
+  if(items.length === 0){
+
+    const li = document.createElement("li");
+
+    li.textContent = "—";
+
+    el.appendChild(li);
+
+    return;
+
+  }
+
+  items.forEach(item => {
+
+    const li = document.createElement("li");
+
+    li.textContent = item;
+
+    el.appendChild(li);
+
+  });
+
+}
+
+
+/* =========================================
+   CAREER SELECTION
+========================================= */
+
+let selectedCareer =
+  localStorage.getItem("naijacv_career") || "general";
+
+
+function updateCareerSelection(){
+
+  document
+    .querySelectorAll(".career-card")
+    .forEach(card => {
+
+      const career =
+        card.dataset.career;
+
+      card.classList.toggle(
+        "selected",
+        career === selectedCareer
+      );
+
+    });
+
+
+  const info =
+    careerInfo[selectedCareer] ||
+    careerInfo.general;
+
+
+  setText(
+    "selectedCareerText",
+    info.name
+  );
+
+
+  setText(
+    "careerDescription",
+    info.description
+  );
+
+
+  const football =
+    selectedCareer === "football";
+
+
+  const footballFields =
+    document.getElementById("footballFields");
+
+
+  const genericFields =
+    document.getElementById("genericCareerFields");
+
+
+  const footballPreview =
+    document.getElementById("footballPreview");
+
+
+  const genericPreview =
+    document.getElementById("genericPreview");
+
+
+  if(footballFields){
+
+    footballFields.style.display =
+      football ? "block" : "none";
+
+  }
+
+
+  if(genericFields){
+
+    genericFields.style.display =
+      football ? "none" : "block";
+
+  }
+
+
+  if(footballPreview){
+
+    footballPreview.style.display =
+      football ? "block" : "none";
+
+  }
+
+
+  if(genericPreview){
+
+    genericPreview.style.display =
+      football ? "none" : "block";
+
+  }
+
+
+  updateLabels();
+
+  updateLivePreview();
+
+}
+
+
+document
+  .querySelectorAll(".career-card")
+  .forEach(card => {
+
+    card.addEventListener("click", () => {
+
+      selectedCareer =
+        card.dataset.career;
+
+      localStorage.setItem(
+        "naijacv_career",
+        selectedCareer
+      );
+
+      updateCareerSelection();
+
+      showStatus(
+        `${careerInfo[selectedCareer].name} selected.`,
+        "success"
+      );
+
+    });
+
+  });
+
+
+/* =========================================
+   LABELS FOR EACH CV TYPE
+========================================= */
+
+function updateLabels(){
+
+  const summaryLabel =
+    document.getElementById("summaryLabel");
+
+  const summary =
+    document.getElementById("summary");
+
+
+  if(selectedCareer === "student"){
+
+    if(summaryLabel)
+      summaryLabel.textContent =
+        "Profile / Career Objective";
+
+    if(summary)
+      summary.placeholder =
+        "Introduce yourself, your course, goals and career interests...";
+
+  }
+
+  else if(selectedCareer === "tech"){
+
+    if(summaryLabel)
+      summaryLabel.textContent =
+        "Professional Tech Profile";
+
+    if(summary)
+      summary.placeholder =
+        "Describe your technical background, interests and strengths...";
+
+  }
+
+  else if(selectedCareer === "creative"){
+
+    if(summaryLabel)
+      summaryLabel.textContent =
+        "Creative Profile";
+
+    if(summary)
+      summary.placeholder =
+        "Describe your creative background, style and professional goals...";
+
+  }
+
+  else if(selectedCareer === "professional"){
+
+    if(summaryLabel)
+      summaryLabel.textContent =
+        "Professional Summary";
+
+    if(summary)
+      summary.placeholder =
+        "Write a concise professional summary...";
+
+  }
+
+  else{
+
+    if(summaryLabel)
+      summaryLabel.textContent =
+        "Professional Summary";
+
+    if(summary)
+      summary.placeholder =
+        "Write a short professional summary...";
+
+  }
+
+}
+
+
+/* =========================================
+   GENERIC CV LIVE PREVIEW
+========================================= */
+
+function updateGenericPreview(){
+
+  const name =
+    value("fullName") || "Your Name";
+
+  const title =
+    value("professionalTitle") ||
+    careerInfo[selectedCareer].title;
+
+  const email =
+    value("email");
+
+  const phone =
+    value("phone");
+
+  const location =
+    value("location");
+
+
+  setText(
+    "previewName",
+    name,
+    "Your Name"
+  );
+
+
+  setText(
+    "previewTitle",
+    title,
+    careerInfo[selectedCareer].title
+  );
+
+
+  let contact = "";
+
+  if(email) contact += email;
+
+  if(phone){
+
+    if(contact) contact += " • ";
+
+    contact += phone;
+
+  }
+
+  if(location){
+
+    if(contact) contact += " • ";
+
+    contact += location;
+
+  }
+
+
+  setText(
+    "previewContact",
+    contact,
+    "Email • Phone • Location"
+  );
+
+
+  setText(
+    "previewSummary",
+    value("summary"),
+    "Your professional summary will appear here."
+  );
+
+
+  setText(
+    "previewEducation",
+    value("education"),
+    "Your education will appear here."
+  );
+
+
+  setText(
+    "previewExperience",
+    value("experience"),
+    "Your work experience will appear here."
+  );
+
+
+  setText(
+    "previewSkills",
+    value("skills"),
+    "Your skills will appear here."
+  );
+
+
+  const summaryTitle =
+    document.getElementById(
+      "previewSummaryTitle"
+    );
+
+
+  if(summaryTitle){
+
+    if(selectedCareer === "student")
+      summaryTitle.textContent =
+        "Profile / Objective";
+
+    else if(selectedCareer === "tech")
+      summaryTitle.textContent =
+        "Tech Profile";
+
+    else if(selectedCareer === "creative")
+      summaryTitle.textContent =
+        "Creative Profile";
+
+    else
+      summaryTitle.textContent =
+        "Professional Summary";
+
+  }
+
+}
+
+
+/* =========================================
+   FOOTBALL DATA
+========================================= */
+
+function getFootballData(){
+
+  return {
+
+    dob:
+      value("footballDob"),
+
+    nationality:
+      value("footballNationality"),
+
+    height:
+      value("footballHeight"),
+
+    foot:
+      value("footballFoot"),
+
+    position:
+      value("footballPosition"),
+
+    secondaryPosition:
+      value("footballSecondaryPosition"),
+
+    club:
+      value("footballClub"),
+
+    matches:
+      value("footballMatches"),
+
+    goals:
+      value("footballGoals"),
+
+    assists:
+      value("footballAssists"),
+
+    strengths:
+      value("footballStrengths"),
+
+    qualities:
+      value("footballQualities"),
+
+    careerObjective:
+      value("footballCareerObjective"),
+
+    previousClubs:
+      value("footballPreviousClubs"),
+
+    competitions:
+      value("footballCompetitions"),
+
+    achievements:
+      value("footballAchievements"),
+
+    playingStyle:
+      value("footballPlayingStyle"),
+
+    personalTraining:
+      value("footballPersonalTraining"),
+
+    teamTraining:
+      value("footballTeamTraining"),
+
+    trainingFocus:
+      value("footballTrainingFocus"),
+
+    technical:
+      value("footballTechnical"),
+
+    physical:
+      value("footballPhysical"),
+
+    tactical:
+      value("footballTactical"),
+
+    mental:
+      value("footballMental"),
+
+    trials:
+      value("footballTrials"),
+
+    availability:
+      value("footballAvailability"),
+
+    trialLocation:
+      value("footballTrialLocation"),
+
+    video:
+      value("footballVideo"),
+
+    links:
+      value("footballLinks"),
+
+    references:
+      value("footballReferences"),
+
+    languages:
+      value("footballLanguages"),
+
+    footballEducation:
+      value("footballEducation"),
+
+    matchHighlights:
+      value("footballMatchHighlights")
+
+  };
+
+}
+
+
+/* =========================================
+   FOOTBALL LIVE PREVIEW
+========================================= */
+
+function updateFootballPreview(){
+
+  const data =
+    getFootballData();
+
+
+  const name =
+    value("fullName") ||
+    "PLAYER NAME";
+
+
+  setText(
+    "fpName",
+    name,
+    "PLAYER NAME"
+  );
+
+
+  setText(
+    "fpPosition",
+    data.position ||
+    value("professionalTitle") ||
+    "FOOTBALL PLAYER"
+  );
+
+
+  let tag = "";
+
+  if(data.club)
+    tag += data.club;
+
+  if(data.secondaryPosition){
+
+    if(tag) tag += " • ";
+
+    tag += data.secondaryPosition;
+
+  }
+
+
+  setText(
+    "fpTag",
+    tag ||
+    "Dedicated football player focused on continuous development."
+  );
+
+
+  setText("fpDob",data.dob);
+  setText("fpNationality",data.nationality);
+  setText("fpHeight",data.height);
+  setText("fpFoot",data.foot);
+  setText("fpPrimary",data.position);
+  setText("fpSecondary",data.secondaryPosition);
+  setText("fpClub",data.club);
+  setText("fpLocation",value("location"));
+
+
+  setText(
+    "fpMatches",
+    data.matches || "0",
+    "0"
+  );
+
+
+  setText(
+    "fpGoals",
+    data.goals || "0",
+    "0"
+  );
+
+
+  setText(
+    "fpAssists",
+    data.assists || "0",
+    "0"
+  );
+
+
+  setText(
+    "fpProfile",
+    value("summary")
+  );
+
+
+  setText(
+    "fpStyle",
+    data.playingStyle
+  );
+
+
+  setText(
+    "fpTechnical",
+    data.technical
+  );
+
+
+  setText(
+    "fpPhysical",
+    data.physical
+  );
+
+
+  setText(
+    "fpTactical",
+    data.tactical
+  );
+
+
+  setText(
+    "fpMental",
+    data.mental
+  );
+
+
+  setText(
+    "fpEmail",
+    value("email")
+  );
+
+
+  setText(
+    "fpPhone",
+    value("phone")
+  );
+
+
+  fillList(
+    "fpStrengths",
+    data.strengths
+  );
+
+
+  fillList(
+    "fpQualities",
+    data.qualities
+  );
+
+
+  let careerText = "";
+
+
+  if(data.previousClubs){
+
+    careerText +=
+      "Previous Clubs:\n" +
+      data.previousClubs;
+
+  }
+
+
+  if(data.competitions){
+
+    if(careerText)
+      careerText += "\n\n";
+
+    careerText +=
+      "Competitions:\n" +
+      data.competitions;
+
+  }
+
+
+  if(data.achievements){
+
+    if(careerText)
+      careerText += "\n\n";
+
+    careerText +=
+      "Achievements:\n" +
+      data.achievements;
+
+  }
+
+
+  setText(
+    "fpCareer",
+    careerText
+  );
+
+
+  let recruitment = "";
+
+
+  if(data.trials){
+
+    recruitment +=
+      "Trials: " +
+      data.trials;
+
+  }
+
+
+  if(data.availability){
+
+    if(recruitment)
+      recruitment += "\n";
+
+    recruitment +=
+      "Availability: " +
+      data.availability;
+
+  }
+
+
+  if(data.trialLocation){
+
+    if(recruitment)
+      recruitment += "\n";
+
+    recruitment +=
+      "Preferred Location: " +
+      data.trialLocation;
+
+  }
+
+
+  setText(
+    "fpTrials",
+    recruitment
+  );
+
+
+  setText(
+    "fpVideo",
+    data.video
+  );
+
+
+  setText(
+    "fpReferences",
+    data.references
+  );
+
+
+  setText(
+    "fpLinks",
+    data.links
+  );
+
+
+  /* PHOTO */
+
+  const photo =
+    document.getElementById("fpPhoto");
+
+
+  if(photo){
+
+    if(window.currentPhotoURL){
+
+      photo.innerHTML =
+        `<img src="${escapeHTML(window.currentPhotoURL)}" alt="Player photo">`;
+
+    }
+
+    else{
+
+      photo.innerHTML =
+        "⚽";
+
+    }
+
+  }
+
+}
+
+
+/* =========================================
+   MASTER LIVE PREVIEW
+========================================= */
+
+function updateLivePreview(){
+
+  if(selectedCareer === "football"){
+
+    updateFootballPreview();
+
+  }
+
+  else{
+
+    updateGenericPreview();
+
+  }
+
+}
+
+
+/* =========================================
+   INPUT LISTENERS
+========================================= */
+
+document.addEventListener(
+  "input",
+  event => {
+
+    if(
+      event.target.matches(
+        "input, textarea, select"
+      )
+    ){
+
+      updateLivePreview();
+
+    }
+
+  }
+);
+
+
+/* =========================================
+   PHOTO PREVIEW
+========================================= */
+
+window.currentPhotoURL = "";
+
+
+document
+  .getElementById("footballPhoto")
+  .addEventListener("change", event => {
+
+    const file =
+      event.target.files[0];
+
+    if(!file) return;
+
+
+    if(file.size > 5 * 1024 * 1024){
+
+      showStatus(
+        "Photo must be 5MB or smaller.",
+        "error"
+      );
+
+      event.target.value = "";
+
+      return;
+
+    }
+
+
+    if(
+      ![
+        "image/jpeg",
+        "image/png",
+        "image/webp"
+      ].includes(file.type)
+    ){
+
+      showStatus(
+        "Please select a JPG, PNG or WebP image.",
+        "error"
+      );
+
+      event.target.value = "";
+
+      return;
+
+    }
+
+
+    if(window.currentPhotoURL){
+
+      URL.revokeObjectURL(
+        window.currentPhotoURL
+      );
+
+    }
+
+
+    window.currentPhotoURL =
+      URL.createObjectURL(file);
+
+
+    const photoPreview =
+      document.getElementById(
+        "photoPreview"
+      );
+
+
+    photoPreview.innerHTML =
+      `<img src="${window.currentPhotoURL}" alt="Player photo">`;
+
+
+    updateFootballPreview();
+
+
+    showStatus(
+      "Photo selected. Save your CV to keep it.",
+      "success"
+    );
+
+  });
+
+
+/* =========================================
+   REMOVE PHOTO
+========================================= */
+
+document
+  .getElementById("removePhotoBtn")
+  .addEventListener("click", () => {
+
+    const input =
+      document.getElementById(
+        "footballPhoto"
+      );
+
+
+    input.value = "";
+
+
+    if(window.currentPhotoURL){
+
+      URL.revokeObjectURL(
+        window.currentPhotoURL
+      );
+
+    }
+
+
+    window.currentPhotoURL = "";
+
+
+    document.getElementById(
+      "photoPreview"
+    ).textContent =
+      "No photo";
+
+
+    updateFootballPreview();
+
+  });
+
+
+/* =========================================
+   STATUS MESSAGE
+========================================= */
+
+function showStatus(message,type){
+
+  const status =
+    document.getElementById("status");
+
+
+  if(!status) return;
+
+
+  status.textContent =
+    message;
+
+
+  status.className =
+    "status show " +
+    (type || "success");
+
+
+  clearTimeout(
+    window.statusTimer
+  );
+
+
+  window.statusTimer =
+    setTimeout(() => {
+
+      status.className =
+        "status";
+
+    },5000);
+
+}
+
+
+/* =========================================
+   INITIAL UI
+========================================= */
+
+updateCareerSelection();
+
+updateLivePreview();
+
+</script>
