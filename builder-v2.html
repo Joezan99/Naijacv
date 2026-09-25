@@ -3784,4 +3784,402 @@ async function uploadPlayerPhoto() {
 
   /*
     Delete the previous photo only AFTER
-   
+   /* =========================================================
+   PART 4 — FINAL INITIALIZATION + COLLAPSIBLE SECTIONS
+   ========================================================= */
+
+/* ---------------------------------------------------------
+   FOOTBALL FORM — MAKE SECTIONS COLLAPSIBLE
+   --------------------------------------------------------- */
+
+function makeFootballSectionsCollapsible() {
+    const container = document.getElementById("footballFields");
+
+    if (!container) return;
+
+    const sections = Array.from(
+        container.querySelectorAll(":scope > .football-section")
+    );
+
+    sections.forEach((section, index) => {
+        // Prevent converting the same section twice
+        if (section.dataset.collapsibleReady === "true") return;
+
+        const heading = section.querySelector("h3");
+
+        if (!heading) return;
+
+        const title = heading.textContent.trim();
+
+        const details = document.createElement("details");
+
+        details.className = "phase-details football-collapsible";
+
+        // Keep the first section open
+        if (index === 0) {
+            details.open = true;
+        }
+
+        const summary = document.createElement("summary");
+
+        summary.innerHTML = `
+            <span class="phase-summary-title">
+                ${safeText(title)}
+            </span>
+            <span class="phase-summary-icon">＋</span>
+        `;
+
+        const body = document.createElement("div");
+
+        body.className = "phase-details-body";
+
+        // Move everything except the old heading
+        Array.from(section.children).forEach(child => {
+            if (child !== heading) {
+                body.appendChild(child);
+            }
+        });
+
+        details.appendChild(summary);
+        details.appendChild(body);
+
+        section.dataset.collapsibleReady = "true";
+
+        section.replaceWith(details);
+
+        // Update icon when opened/closed
+        details.addEventListener("toggle", () => {
+            const icon = summary.querySelector(".phase-summary-icon");
+
+            if (icon) {
+                icon.textContent = details.open ? "−" : "＋";
+            }
+        });
+    });
+}
+
+
+/* ---------------------------------------------------------
+   ADD EXTRA COLLAPSIBLE SECTION STYLES
+   --------------------------------------------------------- */
+
+function addCollapsibleStyles() {
+
+    if (document.getElementById("naijacv-collapsible-styles")) {
+        return;
+    }
+
+    const style = document.createElement("style");
+
+    style.id = "naijacv-collapsible-styles";
+
+    style.textContent = `
+        .football-collapsible {
+            margin-bottom: 14px;
+            border: 1px solid rgba(212,175,55,.18);
+            border-radius: 16px;
+            overflow: hidden;
+            background: rgba(255,255,255,.025);
+        }
+
+        .football-collapsible summary {
+            list-style: none;
+            cursor: pointer;
+            padding: 17px 18px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            font-weight: 800;
+            color: #f4d76a;
+            user-select: none;
+        }
+
+        .football-collapsible summary::-webkit-details-marker {
+            display: none;
+        }
+
+        .football-collapsible summary:hover {
+            background: rgba(212,175,55,.06);
+        }
+
+        .phase-summary-title {
+            font-size: 15px;
+            letter-spacing: .2px;
+        }
+
+        .phase-summary-icon {
+            width: 28px;
+            height: 28px;
+            min-width: 28px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid rgba(212,175,55,.35);
+            color: #f4d76a;
+            font-size: 18px;
+            line-height: 1;
+        }
+
+        .football-collapsible[open] summary {
+            border-bottom: 1px solid rgba(212,175,55,.12);
+        }
+
+        .phase-details-body {
+            padding: 16px;
+        }
+
+        .phase-details-body .form-group:last-child {
+            margin-bottom: 0;
+        }
+
+        /* Photo section inside collapsible area */
+        .phase-details-body .photo-card {
+            margin-bottom: 0;
+        }
+
+        /* Better mobile spacing */
+        @media (max-width: 600px) {
+
+            .football-collapsible summary {
+                padding: 15px;
+            }
+
+            .phase-details-body {
+                padding: 12px;
+            }
+
+            .phase-summary-title {
+                font-size: 14px;
+            }
+        }
+    `;
+
+    document.head.appendChild(style);
+}
+
+
+/* ---------------------------------------------------------
+   AUTOMATIC PREVIEW + COMPLETION UPDATES
+   --------------------------------------------------------- */
+
+function attachLiveListeners() {
+
+    const fields = document.querySelectorAll(
+        "input, textarea, select"
+    );
+
+    fields.forEach(field => {
+
+        field.addEventListener("input", () => {
+            updateCV();
+        });
+
+        field.addEventListener("change", () => {
+            updateCV();
+        });
+    });
+
+    // Keep current club career name synchronized
+    const clubField = document.getElementById("footballClub");
+    const clubCareerName = document.getElementById(
+        "footballClubCareerName"
+    );
+
+    if (clubField && clubCareerName) {
+
+        clubField.addEventListener("input", () => {
+
+            if (
+                !clubCareerName.value.trim() ||
+                clubCareerName.dataset.autoFilled === "true"
+            ) {
+                clubCareerName.value = clubField.value;
+
+                clubCareerName.dataset.autoFilled = "true";
+
+                updateCV();
+            }
+        });
+
+        clubCareerName.addEventListener("input", () => {
+            clubCareerName.dataset.autoFilled = "false";
+        });
+    }
+}
+
+
+/* ---------------------------------------------------------
+   EMAIL AUTO-FILL
+   --------------------------------------------------------- */
+
+function fillUserEmail() {
+
+    const emailField = document.getElementById("email");
+
+    if (!emailField) return;
+
+    if (
+        !emailField.value.trim() &&
+        currentUser &&
+        currentUser.email
+    ) {
+        emailField.value = currentUser.email;
+    }
+}
+
+
+/* ---------------------------------------------------------
+   UPDATE BUILDER UI
+   --------------------------------------------------------- */
+
+function refreshBuilderUI() {
+
+    updateCareerSelection();
+
+    updateCareerVisibility();
+
+    updateCV();
+
+    updateCompletion();
+
+    updatePhotoPreview();
+
+    fillUserEmail();
+}
+
+
+/* ---------------------------------------------------------
+   MAIN INITIALIZATION
+   --------------------------------------------------------- */
+
+async function initializeBuilder() {
+
+    try {
+
+        // Add special CSS
+        addCollapsibleStyles();
+
+        // Make football sections collapsible
+        makeFootballSectionsCollapsible();
+
+        // Add automatic live preview listeners
+        attachLiveListeners();
+
+        // Check authentication
+        const loggedIn = await checkUser();
+
+        if (!loggedIn) {
+            return;
+        }
+
+        // Make sure current user email appears
+        fillUserEmail();
+
+        // Restore selected career
+        const savedCareer =
+            localStorage.getItem("naijacv_career");
+
+        if (savedCareer) {
+            selectedCareer = savedCareer;
+        }
+
+        refreshBuilderUI();
+
+        // Check whether we are editing an existing CV
+        const params = new URLSearchParams(
+            window.location.search
+        );
+
+        const cvId = params.get("id");
+
+        if (cvId) {
+
+            await loadCVFromURL();
+
+        } else {
+
+            // New CV
+            currentCVId = null;
+
+            existingPhotoPath = "";
+
+            pendingPhotoFile = null;
+
+            removeExistingPhoto = false;
+
+            fillUserEmail();
+
+            updatePhotoPreview();
+        }
+
+        refreshBuilderUI();
+
+    } catch (error) {
+
+        console.error(
+            "Builder initialization error:",
+            error
+        );
+
+        showStatus(
+            "Something went wrong while loading the builder.",
+            "error"
+        );
+    }
+}
+
+
+/* ---------------------------------------------------------
+   START BUILDER
+   --------------------------------------------------------- */
+
+if (
+    document.readyState === "loading"
+) {
+
+    document.addEventListener(
+        "DOMContentLoaded",
+        initializeBuilder
+    );
+
+} else {
+
+    initializeBuilder();
+
+}
+
+
+/* ---------------------------------------------------------
+   FINAL SAFETY UPDATE
+   --------------------------------------------------------- */
+
+window.addEventListener("load", () => {
+
+    try {
+
+        makeFootballSectionsCollapsible();
+
+        updateCareerSelection();
+
+        updateCareerVisibility();
+
+        updateCV();
+
+        updateCompletion();
+
+    } catch (error) {
+
+        console.error(
+            "Final builder update error:",
+            error
+        );
+    }
+
+});
+
+</script>
+
+</body>
+</html>
