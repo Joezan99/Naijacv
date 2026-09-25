@@ -1,0 +1,1447 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+
+<meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+>
+
+<title>NaijaCV — CV Preview</title>
+
+<style>
+
+* {
+    box-sizing: border-box;
+}
+
+html,
+body {
+    margin: 0;
+    padding: 0;
+    background: #e9e9e9;
+    font-family:
+        Arial,
+        Helvetica,
+        sans-serif;
+    color: #111;
+}
+
+body {
+    min-height: 100vh;
+}
+
+/* =========================================================
+   TOP BAR
+   ========================================================= */
+
+.topbar {
+    width: 100%;
+    background: #111;
+    color: white;
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+}
+
+.topbar-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.logo {
+    font-size: 18px;
+    font-weight: 900;
+    color: #d4af37;
+}
+
+.preview-label {
+    font-size: 13px;
+    color: #ccc;
+}
+
+.topbar-actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.topbar button {
+    border: 0;
+    border-radius: 8px;
+    padding: 9px 13px;
+    font-size: 12px;
+    font-weight: 800;
+    cursor: pointer;
+}
+
+.btn-back {
+    background: #333;
+    color: white;
+}
+
+.btn-print {
+    background: #d4af37;
+    color: #111;
+}
+
+/* =========================================================
+   PAGE WRAPPER
+   ========================================================= */
+
+.preview-wrapper {
+    padding: 30px 15px 50px;
+}
+
+/* =========================================================
+   A4 PAGE
+   ========================================================= */
+
+.cv-page {
+    width: 210mm;
+    height: 297mm;
+
+    margin: 0 auto;
+
+    background: #fff;
+
+    position: relative;
+
+    overflow: hidden;
+
+    box-shadow:
+        0 10px 35px rgba(0,0,0,.20);
+}
+
+/* =========================================================
+   FOOTBALL CV
+   ========================================================= */
+
+.football-cv {
+    width: 100%;
+    height: 100%;
+
+    display: grid;
+
+    grid-template-columns:
+        67mm 1fr;
+
+    background: #fff;
+}
+
+/* =========================================================
+   LEFT COLUMN
+   ========================================================= */
+
+.left-column {
+    background: #101010;
+    color: white;
+
+    padding: 15mm 9mm;
+
+    position: relative;
+
+    overflow: hidden;
+}
+
+.gold-line {
+    width: 100%;
+    height: 3px;
+    background: #d4af37;
+    margin-bottom: 14px;
+}
+
+/* =========================================================
+   PLAYER PHOTO
+   ========================================================= */
+
+.player-photo-wrap {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    margin-bottom: 12px;
+}
+
+.player-photo {
+    width: 40mm;
+    height: 48mm;
+
+    object-fit: cover;
+
+    border-radius: 8px;
+
+    border: 3px solid #d4af37;
+
+    background: #222;
+
+    display: block;
+}
+
+.player-photo-placeholder {
+    width: 40mm;
+    height: 48mm;
+
+    border-radius: 8px;
+
+    border: 3px solid #d4af37;
+
+    background: #222;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    color: #888;
+
+    font-size: 10px;
+    text-align: center;
+}
+
+/* =========================================================
+   PLAYER NAME
+   ========================================================= */
+
+.player-name {
+    font-size: 25px;
+    line-height: 1.05;
+
+    font-weight: 950;
+
+    text-transform: uppercase;
+
+    letter-spacing: -.5px;
+
+    color: white;
+
+    margin: 4px 0 5px;
+}
+
+.player-position {
+    display: inline-block;
+
+    background: #d4af37;
+    color: #111;
+
+    font-size: 10px;
+
+    font-weight: 900;
+
+    padding: 5px 9px;
+
+    border-radius: 20px;
+
+    text-transform: uppercase;
+
+    margin-bottom: 14px;
+}
+
+/* =========================================================
+   LEFT SECTIONS
+   ========================================================= */
+
+.left-section {
+    margin-top: 14px;
+}
+
+.left-title {
+    font-size: 9px;
+
+    font-weight: 900;
+
+    text-transform: uppercase;
+
+    letter-spacing: 1.2px;
+
+    color: #d4af37;
+
+    margin-bottom: 7px;
+
+    padding-bottom: 4px;
+
+    border-bottom:
+        1px solid rgba(212,175,55,.4);
+}
+
+.info-row {
+    margin-bottom: 6px;
+}
+
+.info-label {
+    display: block;
+
+    font-size: 7px;
+
+    text-transform: uppercase;
+
+    color: #999;
+
+    letter-spacing: .6px;
+
+    margin-bottom: 1px;
+}
+
+.info-value {
+    font-size: 9px;
+
+    color: white;
+
+    line-height: 1.25;
+
+    word-break: break-word;
+}
+
+/* =========================================================
+   CONTACT
+   ========================================================= */
+
+.contact-item {
+    font-size: 8px;
+
+    line-height: 1.35;
+
+    color: #eee;
+
+    margin-bottom: 5px;
+
+    word-break: break-word;
+}
+
+/* =========================================================
+   LINKS
+   ========================================================= */
+
+.link-item {
+    display: block;
+
+    color: #f0d56d;
+
+    font-size: 7.5px;
+
+    line-height: 1.3;
+
+    margin-bottom: 4px;
+
+    text-decoration: none;
+
+    word-break: break-word;
+}
+
+/* =========================================================
+   RIGHT COLUMN
+   ========================================================= */
+
+.right-column {
+    padding: 12mm 11mm;
+
+    overflow: hidden;
+
+    background: #fff;
+}
+
+.right-header-line {
+    width: 100%;
+
+    height: 4px;
+
+    background: #d4af37;
+
+    margin-bottom: 12px;
+}
+
+/* =========================================================
+   RIGHT SECTIONS
+   ========================================================= */
+
+.cv-section {
+    margin-bottom: 10px;
+}
+
+.section-heading {
+    display: flex;
+
+    align-items: center;
+
+    gap: 7px;
+
+    margin-bottom: 5px;
+}
+
+.section-heading::before {
+    content: "";
+
+    width: 5px;
+
+    height: 18px;
+
+    background: #d4af37;
+
+    display: block;
+}
+
+.section-heading h2 {
+    margin: 0;
+
+    font-size: 12px;
+
+    font-weight: 950;
+
+    text-transform: uppercase;
+
+    letter-spacing: .6px;
+
+    color: #111;
+}
+
+.section-content {
+    font-size: 8.5px;
+
+    line-height: 1.35;
+
+    color: #333;
+
+    white-space: pre-line;
+}
+
+/* =========================================================
+   PROFILE
+   ========================================================= */
+
+.profile-text {
+    font-size: 8.5px;
+
+    line-height: 1.4;
+
+    color: #333;
+
+    white-space: pre-line;
+}
+
+/* =========================================================
+   STRENGTHS
+   ========================================================= */
+
+.chip-container {
+    display: flex;
+
+    flex-wrap: wrap;
+
+    gap: 4px;
+}
+
+.chip {
+    border:
+        1px solid #d4af37;
+
+    color: #222;
+
+    padding: 4px 7px;
+
+    border-radius: 20px;
+
+    font-size: 7.5px;
+
+    font-weight: 700;
+
+    background: #fffdf4;
+}
+
+/* =========================================================
+   STATISTICS
+   ========================================================= */
+
+.stats-grid {
+    display: grid;
+
+    grid-template-columns:
+        repeat(4, 1fr);
+
+    gap: 6px;
+
+    margin-top: 5px;
+}
+
+.stat-card {
+    border:
+        1px solid #ddd;
+
+    border-top:
+        3px solid #d4af37;
+
+    border-radius: 6px;
+
+    padding: 7px 4px;
+
+    text-align: center;
+
+    background: #fafafa;
+
+    min-height: 42px;
+}
+
+.stat-number {
+    font-size: 15px;
+
+    line-height: 1;
+
+    font-weight: 950;
+
+    color: #111;
+
+    margin-bottom: 3px;
+}
+
+.stat-label {
+    font-size: 6.5px;
+
+    text-transform: uppercase;
+
+    color: #777;
+
+    font-weight: 800;
+
+    letter-spacing: .3px;
+}
+
+/* =========================================================
+   ADDITIONAL STATS
+   ========================================================= */
+
+.additional-stats {
+    display: grid;
+
+    grid-template-columns:
+        repeat(4, 1fr);
+
+    gap: 5px;
+
+    margin-top: 5px;
+}
+
+.additional-stat {
+    background: #f5f5f5;
+
+    border-radius: 5px;
+
+    padding: 5px;
+
+    text-align: center;
+}
+
+.additional-stat strong {
+    display: block;
+
+    font-size: 10px;
+
+    color: #111;
+}
+
+.additional-stat span {
+    display: block;
+
+    font-size: 5.8px;
+
+    text-transform: uppercase;
+
+    color: #777;
+
+    margin-top: 2px;
+}
+
+/* =========================================================
+   ATTRIBUTE GRID
+   ========================================================= */
+
+.attributes-grid {
+    display: grid;
+
+    grid-template-columns:
+        repeat(2, 1fr);
+
+    gap: 6px;
+}
+
+.attribute-card {
+    border:
+        1px solid #e0e0e0;
+
+    border-radius: 6px;
+
+    padding: 6px;
+
+    background: #fafafa;
+}
+
+.attribute-title {
+    font-size: 7px;
+
+    text-transform: uppercase;
+
+    font-weight: 900;
+
+    color: #777;
+
+    margin-bottom: 3px;
+}
+
+.attribute-text {
+    font-size: 7.5px;
+
+    line-height: 1.25;
+
+    color: #222;
+
+    white-space: pre-line;
+}
+
+/* =========================================================
+   CAREER TIMELINE
+   ========================================================= */
+
+.timeline {
+    position: relative;
+
+    margin-top: 4px;
+
+    padding-left: 14px;
+}
+
+.timeline::before {
+    content: "";
+
+    position: absolute;
+
+    left: 3px;
+
+    top: 3px;
+
+    bottom: 3px;
+
+    width: 2px;
+
+    background: #d4af37;
+}
+
+.timeline-item {
+    position: relative;
+
+    margin-bottom: 8px;
+
+    padding-left: 7px;
+}
+
+.timeline-item:last-child {
+    margin-bottom: 0;
+}
+
+.timeline-dot {
+    position: absolute;
+
+    left: -15px;
+
+    top: 2px;
+
+    width: 9px;
+
+    height: 9px;
+
+    border-radius: 50%;
+
+    background: #d4af37;
+
+    border: 2px solid white;
+
+    box-shadow:
+        0 0 0 1px #d4af37;
+}
+
+.timeline-club {
+    font-size: 9px;
+
+    font-weight: 950;
+
+    color: #111;
+}
+
+.timeline-meta {
+    font-size: 7px;
+
+    color: #777;
+
+    margin-top: 2px;
+}
+
+.timeline-achievement {
+    font-size: 7.5px;
+
+    color: #333;
+
+    line-height: 1.3;
+
+    margin-top: 2px;
+
+    white-space: pre-line;
+}
+
+/* =========================================================
+   RECRUITMENT
+   ========================================================= */
+
+.recruitment-box {
+    border:
+        1px solid #e0e0e0;
+
+    border-left:
+        4px solid #d4af37;
+
+    padding: 7px;
+
+    background: #fffdf4;
+
+    border-radius: 5px;
+}
+
+.recruit-row {
+    display: grid;
+
+    grid-template-columns:
+        95px 1fr;
+
+    gap: 5px;
+
+    margin-bottom: 4px;
+}
+
+.recruit-row:last-child {
+    margin-bottom: 0;
+}
+
+.recruit-label {
+    font-size: 6.5px;
+
+    text-transform: uppercase;
+
+    color: #777;
+
+    font-weight: 900;
+}
+
+.recruit-value {
+    font-size: 7.5px;
+
+    color: #222;
+
+    word-break: break-word;
+}
+
+/* =========================================================
+   HIGHLIGHT BOX
+   ========================================================= */
+
+.highlight-box {
+    border:
+        1px solid #ddd;
+
+    background: #fafafa;
+
+    border-radius: 5px;
+
+    padding: 6px;
+
+    font-size: 7.5px;
+
+    line-height: 1.3;
+
+    white-space: pre-line;
+}
+
+/* =========================================================
+   EMPTY / HIDDEN
+   ========================================================= */
+
+.hidden {
+    display: none !important;
+}
+
+/* =========================================================
+   NORMAL CV
+   ========================================================= */
+
+.normal-cv {
+    width: 100%;
+    min-height: 100%;
+
+    padding: 18mm;
+
+    background: white;
+
+    color: #111;
+}
+
+.normal-name {
+    font-size: 28px;
+
+    font-weight: 950;
+
+    margin: 0 0 5px;
+}
+
+.normal-title {
+    color: #555;
+
+    font-size: 13px;
+
+    margin-bottom: 10px;
+}
+
+.normal-contact {
+    font-size: 9px;
+
+    color: #555;
+
+    margin-bottom: 18px;
+}
+
+.normal-section {
+    margin-bottom: 15px;
+}
+
+.normal-section h2 {
+    font-size: 13px;
+
+    text-transform: uppercase;
+
+    border-bottom:
+        2px solid #111;
+
+    padding-bottom: 4px;
+
+    margin-bottom: 7px;
+}
+
+.normal-section p {
+    font-size: 9px;
+
+    line-height: 1.45;
+
+    white-space: pre-line;
+}
+
+.normal-section ul {
+    margin: 5px 0;
+
+    padding-left: 17px;
+}
+
+.normal-section li {
+    font-size: 9px;
+
+    margin-bottom: 4px;
+}
+
+/* =========================================================
+   RESPONSIVE SCREEN VIEW
+   ========================================================= */
+
+@media (max-width: 900px) {
+
+    .preview-wrapper {
+        padding: 15px 8px 30px;
+        overflow-x: auto;
+    }
+
+    .cv-page {
+        transform-origin: top center;
+    }
+
+}
+
+@media (max-width: 700px) {
+
+    .topbar {
+        position: relative;
+
+        flex-direction: column;
+
+        align-items: stretch;
+    }
+
+    .topbar-actions {
+        width: 100%;
+    }
+
+    .topbar button {
+        flex: 1;
+    }
+
+    .preview-wrapper {
+        display: flex;
+
+        justify-content: center;
+
+        overflow-x: auto;
+
+        padding: 15px 5px 30px;
+    }
+
+    .cv-page {
+        flex-shrink: 0;
+    }
+
+}
+
+/* =========================================================
+   PRINT
+   ========================================================= */
+
+@page {
+    size: A4;
+    margin: 0;
+}
+
+@media print {
+
+    html,
+    body {
+        width: 210mm;
+        height: 297mm;
+
+        margin: 0;
+        padding: 0;
+
+        background: white;
+    }
+
+    .topbar {
+        display: none !important;
+    }
+
+    .preview-wrapper {
+        padding: 0 !important;
+        margin: 0 !important;
+    }
+
+    .cv-page {
+        width: 210mm !important;
+        height: 297mm !important;
+
+        margin: 0 !important;
+
+        box-shadow: none !important;
+
+        overflow: hidden !important;
+    }
+
+    .football-cv {
+        width: 210mm !important;
+        height: 297mm !important;
+    }
+
+    .normal-cv {
+        width: 210mm !important;
+        min-height: 297mm !important;
+    }
+
+    * {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="topbar">
+
+    <div class="topbar-left">
+
+        <div class="logo">
+            NaijaCV
+        </div>
+
+        <div class="preview-label">
+            CV Preview
+        </div>
+
+    </div>
+
+    <div class="topbar-actions">
+
+        <button
+            class="btn-back"
+            onclick="goBack()"
+        >
+            ← Back
+        </button>
+
+        <button
+            class="btn-print"
+            onclick="printCV()"
+        >
+            Print / PDF
+        </button>
+
+    </div>
+
+</div>
+
+
+<div class="preview-wrapper">
+
+    <!-- FOOTBALL CV -->
+
+    <div
+        id="footballCV"
+        class="cv-page football-cv hidden"
+    >
+
+        <!-- LEFT COLUMN -->
+
+        <aside class="left-column">
+
+            <div class="gold-line"></div>
+
+            <div class="player-photo-wrap">
+
+                <img
+                    id="playerPhoto"
+                    class="player-photo hidden"
+                    alt="Player photo"
+                >
+
+                <div
+                    id="playerPhotoPlaceholder"
+                    class="player-photo-placeholder"
+                >
+                    PLAYER<br>
+                    PHOTO
+                </div>
+
+            </div>
+
+
+            <div
+                id="playerName"
+                class="player-name"
+            >
+                Football Player
+            </div>
+
+
+            <div
+                id="playerPosition"
+                class="player-position"
+            >
+                Centre Midfielder
+            </div>
+
+
+            <!-- PLAYER INFORMATION -->
+
+            <div
+                id="playerInfoSection"
+                class="left-section"
+            >
+
+                <div class="left-title">
+                    Player Information
+                </div>
+
+
+                <div
+                    id="dobRow"
+                    class="info-row"
+                >
+                    <span class="info-label">
+                        Date of Birth
+                    </span>
+
+                    <span
+                        id="playerDob"
+                        class="info-value"
+                    ></span>
+                </div>
+
+
+                <div
+                    id="heightRow"
+                    class="info-row"
+                >
+                    <span class="info-label">
+                        Height
+                    </span>
+
+                    <span
+                        id="playerHeight"
+                        class="info-value"
+                    ></span>
+                </div>
+
+
+                <div
+                    id="footRow"
+                    class="info-row"
+                >
+                    <span class="info-label">
+                        Preferred Foot
+                    </span>
+
+                    <span
+                        id="playerFoot"
+                        class="info-value"
+                    ></span>
+                </div>
+
+
+                <div
+                    id="nationalityRow"
+                    class="info-row"
+                >
+                    <span class="info-label">
+                        Nationality
+                    </span>
+
+                    <span
+                        id="playerNationality"
+                        class="info-value"
+                    ></span>
+                </div>
+
+
+                <div
+                    id="primaryPositionRow"
+                    class="info-row"
+                >
+                    <span class="info-label">
+                        Primary Position
+                    </span>
+
+                    <span
+                        id="playerPrimaryPosition"
+                        class="info-value"
+                    ></span>
+                </div>
+
+
+                <div
+                    id="secondaryPositionRow"
+                    class="info-row"
+                >
+                    <span class="info-label">
+                        Secondary Position
+                    </span>
+
+                    <span
+                        id="playerSecondaryPosition"
+                        class="info-value"
+                    ></span>
+                </div>
+
+
+                <div
+                    id="clubRow"
+                    class="info-row"
+                >
+                    <span class="info-label">
+                        Current Club
+                    </span>
+
+                    <span
+                        id="playerClub"
+                        class="info-value"
+                    ></span>
+                </div>
+
+
+                <div
+                    id="locationRow"
+                    class="info-row"
+                >
+                    <span class="info-label">
+                        Location
+                    </span>
+
+                    <span
+                        id="playerLocation"
+                        class="info-value"
+                    ></span>
+                </div>
+
+            </div>
+
+
+            <!-- CONTACT -->
+
+            <div
+                id="contactSection"
+                class="left-section"
+            >
+
+                <div class="left-title">
+                    Contact
+                </div>
+
+                <div
+                    id="playerEmail"
+                    class="contact-item"
+                ></div>
+
+                <div
+                    id="playerPhone"
+                    class="contact-item"
+                ></div>
+
+            </div>
+
+
+            <!-- LINKS -->
+
+            <div
+                id="linksSection"
+                class="left-section hidden"
+            >
+
+                <div class="left-title">
+                    Football Links
+                </div>
+
+                <div id="playerLinks"></div>
+
+            </div>
+
+
+            <!-- LANGUAGES -->
+
+            <div
+                id="languagesSection"
+                class="left-section hidden"
+            >
+
+                <div class="left-title">
+                    Languages
+                </div>
+
+                <div
+                    id="playerLanguages"
+                    class="info-value"
+                ></div>
+
+            </div>
+
+
+            <!-- FOOTBALL EDUCATION -->
+
+            <div
+                id="footballEducationSection"
+                class="left-section hidden"
+            >
+
+                <div class="left-title">
+                    Football Education
+                </div>
+
+                <div
+                    id="playerFootballEducation"
+                    class="info-value"
+                ></div>
+
+            </div>
+
+        </aside>
+
+
+        <!-- RIGHT COLUMN -->
+
+        <main class="right-column">
+
+            <div class="right-header-line"></div>
+
+
+            <!-- PROFILE -->
+
+            <section
+                id="profileSection"
+                class="cv-section"
+            >
+
+                <div class="section-heading">
+                    <h2>Player Profile</h2>
+                </div>
+
+                <div
+                    id="playerProfile"
+                    class="profile-text"
+                ></div>
+
+            </section>
+
+
+            <!-- STRENGTHS -->
+
+            <section
+                id="strengthsSection"
+                class="cv-section hidden"
+            >
+
+                <div class="section-heading">
+                    <h2>Key Strengths</h2>
+                </div>
+
+                <div
+                    id="playerStrengths"
+                    class="chip-container"
+                ></div>
+
+            </section>
+
+
+            <!-- QUALITIES -->
+
+            <section
+                id="qualitiesSection"
+                class="cv-section hidden"
+            >
+
+                <div class="section-heading">
+                    <h2>Player Qualities</h2>
+                </div>
+
+                <div
+                    id="playerQualities"
+                    class="chip-container"
+                ></div>
+
+            </section>
+
+
+            <!-- STATISTICS -->
+
+            <section
+                id="statisticsSection"
+                class="cv-section hidden"
+            >
+
+                <div class="section-heading">
+                    <h2>Career Statistics</h2>
+                </div>
+
+
+                <div class="stats-grid">
+
+                    <div class="stat-card">
+                        <div
+                            id="statMatches"
+                            class="stat-number"
+                        >
+                            0
+                        </div>
+
+                        <div class="stat-label">
+                            Matches
+                        </div>
+                    </div>
+
+
+                    <div class="stat-card">
+                        <div
+                            id="statGoals"
+                            class="stat-number"
+                        >
+                            0
+                        </div>
+
+                        <div class="stat-label">
+                            Goals
+                        </div>
+                    </div>
+
+
+                    <div class="stat-card">
+                        <div
+                            id="statAssists"
+                            class="stat-number"
+                        >
+                            0
+                        </div>
+
+                        <div class="stat-label">
+                            Assists
+                        </div>
+                    </div>
+
+
+                    <div class="stat-card">
+                        <div
+                            id="statCompetitions"
+                            class="stat-number"
+                        >
+                            0
+                        </div>
+
+                        <div class="stat-label">
+                            Competitions
+                        </div>
+                    </div>
+
+                </div>
+
+
+                <div
+                    id="additionalStats"
+                    class="additional-stats hidden"
+                >
+
+                    <div class="additional-stat">
+                        <strong id="statMinutes">
+                            0
+                        </strong>
+
+                        <span>
+                            Minutes
+                        </span>
+                    </div>
+
+
+                    <div class="additional-stat">
+                        <strong id="statKeyPasses">
+                            0
+                        </strong>
+
+                        <span>
+                            Key Passes
+                        </span>
+                    </div>
+
+
+                    <div class="additional-stat">
+                        <strong id="statDefensiveActions">
+                            0
+                        </strong>
+
+                        <span>
+                            Defensive Actions
+                        </span>
+                    </div>
+
+
+                    <div class="additional-stat">
+                        <strong id="statCleanSheets">
+                            0
+                        </strong>
+
+                        <span>
+                            Clean Sheets
+                        </span>
+                    </div>
+
+                </div>
+
+            </section>
