@@ -3607,3 +3607,181 @@ function updateCompletion() {
   fields.push(
     value("phone")
   )
+/* =========================================================
+   PART 3 — AUTHENTICATION + PHOTO STORAGE + SAVE/LOAD
+   ========================================================= */
+
+
+/* =========================
+   GET CURRENT USER
+   ========================= */
+
+async function getCurrentUser() {
+
+  try {
+
+    const {
+      data,
+      error
+    } =
+      await supabaseClient
+        .auth
+        .getUser();
+
+    if (error) {
+      throw error;
+    }
+
+    return data.user || null;
+
+  } catch (error) {
+
+    console.error(
+      "Get user error:",
+      error
+    );
+
+    return null;
+
+  }
+
+}
+
+
+/* =========================
+   CHECK USER
+   ========================= */
+
+async function checkUser() {
+
+  currentUser =
+    await getCurrentUser();
+
+  if (!currentUser) {
+
+    window.location.href =
+      "auth.html?mode=login";
+
+    return false;
+
+  }
+
+  const emailElement =
+    document.getElementById(
+      "userEmail"
+    );
+
+  if (emailElement) {
+
+    emailElement.textContent =
+      currentUser.email || "";
+
+  }
+
+  return true;
+
+}
+
+
+/* =========================
+   AUTH STATE LISTENER
+   ========================= */
+
+supabaseClient
+  .auth
+  .onAuthStateChange(
+    function(event, session) {
+
+      if (
+        event === "SIGNED_OUT"
+      ) {
+
+        window.location.href =
+          "auth.html?mode=login";
+
+      }
+
+    }
+  );
+
+
+/* =========================
+   UPLOAD PLAYER PHOTO
+   ========================= */
+
+async function uploadPlayerPhoto() {
+
+  if (!pendingPhotoFile) {
+
+    return existingPhotoPath || "";
+
+  }
+
+  if (!currentUser) {
+
+    throw new Error(
+      "You must be logged in before uploading a photo."
+    );
+
+  }
+
+
+  const file =
+    pendingPhotoFile;
+
+  const extension =
+    (
+      file.name
+        .split(".")
+        .pop() ||
+      "jpg"
+    )
+    .toLowerCase()
+    .replace(/[^a-z0-9]/g, "");
+
+
+  const fileName =
+    `${Date.now()}-${Math.random()
+      .toString(36)
+      .slice(2, 9)}.${extension}`;
+
+
+  const filePath =
+    `${currentUser.id}/${fileName}`;
+
+
+  const {
+    error
+  } =
+    await supabaseClient
+      .storage
+      .from("cv-photos")
+      .upload(
+        filePath,
+        file,
+        {
+          cacheControl: "3600",
+          upsert: false,
+          contentType: file.type
+        }
+      );
+
+
+  if (error) {
+
+    console.error(
+      "Photo upload error:",
+      error
+    );
+
+    throw new Error(
+      "Photo upload failed: " +
+      error.message
+    );
+
+  }
+
+
+  /*
+    Delete the previous photo only AFTER
+   
