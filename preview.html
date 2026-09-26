@@ -1863,7 +1863,7 @@ const SUPABASE_URL =
     "https://wkkekfrfuuhsmifgddqr.supabase.co";
 
 const SUPABASE_KEY =
-    "PASTE_YOUR_EXISTING_PUBLISHABLE_KEY_HERE";
+    "sb_publishable_X0hCcFAvsC6rlepbtgxhig_hcXMtPyA";
 
 const supabaseClient =
     window.supabase.createClient(
@@ -2734,3 +2734,1066 @@ function renderAttributes() {
     }
 
 }
+/* =========================================================
+   CAREER TIMELINE
+   ========================================================= */
+
+function renderCareerTimeline() {
+
+    const currentClub =
+        getValue(
+            careerData.footballClubCareerName
+        ) ||
+        getValue(
+            careerData.footballClub
+        );
+
+    const currentYears =
+        getValue(
+            careerData.footballCurrentClubYears
+        );
+
+    const currentPosition =
+        getValue(
+            careerData.footballCurrentClubPosition
+        ) ||
+        getValue(
+            careerData.footballPosition
+        );
+
+    const currentAchievement =
+        getValue(
+            careerData.footballAchievements
+        );
+
+
+    /*
+       Previous club history can be entered in
+       several formats. We keep it flexible so
+       the user can type:
+
+       Club A — 2023–2024 — Midfielder
+       Club B — 2022–2023 — Midfielder
+
+       or simply:
+
+       Club A
+       Club B
+    */
+
+    const previousHistory =
+        getValue(
+            careerData.footballPreviousClubHistory
+        );
+
+
+    const previousClubs =
+        getValue(
+            careerData.footballPreviousClubs
+        );
+
+
+    const timelineItems = [];
+
+
+    if (currentClub) {
+
+        timelineItems.push({
+            club: currentClub,
+            years: currentYears || "Current",
+            position:
+                currentPosition ||
+                "",
+            achievement:
+                currentAchievement ||
+                ""
+        });
+
+    }
+
+
+    const historySource =
+        previousHistory ||
+        previousClubs;
+
+
+    if (historySource) {
+
+        const lines =
+            historySource
+                .split(/\n+/)
+                .map(
+                    line => line.trim()
+                )
+                .filter(Boolean);
+
+
+        lines.forEach(line => {
+
+            /*
+               Try to separate:
+
+               Club — Years — Position — Achievement
+            */
+
+            const parts =
+                line
+                    .split(/\s*[|—–-]\s*/)
+                    .map(
+                        part => part.trim()
+                    )
+                    .filter(Boolean);
+
+
+            if (!parts.length) {
+                return;
+            }
+
+
+            let club = parts[0] || "";
+
+            let years = "";
+            let position = "";
+            let achievement = "";
+
+
+            if (parts.length >= 2) {
+                years = parts[1];
+            }
+
+            if (parts.length >= 3) {
+                position = parts[2];
+            }
+
+            if (parts.length >= 4) {
+                achievement =
+                    parts.slice(3).join(" — ");
+            }
+
+
+            timelineItems.push({
+                club,
+                years,
+                position,
+                achievement
+            });
+
+        });
+
+    }
+
+
+    if (!timelineItems.length) {
+
+        hideElement(
+            "careerSection"
+        );
+
+        return;
+
+    }
+
+
+    showElement(
+        "careerSection"
+    );
+
+
+    const html =
+        timelineItems
+            .map(item => {
+
+                const meta = [
+                    item.years,
+                    item.position
+                ]
+                .filter(Boolean)
+                .join(" • ");
+
+
+                return `
+                    <div class="timeline-item">
+
+                        <div class="timeline-dot"></div>
+
+                        <div class="timeline-club">
+                            ${escapeHTML(item.club)}
+                        </div>
+
+                        ${
+                            meta
+                            ? `
+                                <div class="timeline-meta">
+                                    ${escapeHTML(meta)}
+                                </div>
+                              `
+                            : ""
+                        }
+
+                        ${
+                            item.achievement
+                            ? `
+                                <div class="timeline-achievement">
+                                    ${escapeHTML(item.achievement)}
+                                </div>
+                              `
+                            : ""
+                        }
+
+                    </div>
+                `;
+
+            })
+            .join("");
+
+
+    setHTML(
+        "careerTimeline",
+        html
+    );
+
+}
+
+
+/* =========================================================
+   COMPETITIONS
+   ========================================================= */
+
+function renderCompetitions() {
+
+    const competitions =
+        getValue(
+            careerData.footballCompetitions
+        );
+
+
+    if (
+        showIfHasValue(
+            "competitionsSection",
+            competitions
+        )
+    ) {
+
+        setText(
+            "playerCompetitions",
+            competitions
+        );
+
+    }
+
+}
+
+
+/* =========================================================
+   ACHIEVEMENTS
+   ========================================================= */
+
+function renderAchievements() {
+
+    const achievements =
+        getValue(
+            careerData.footballAchievements
+        );
+
+
+    if (
+        showIfHasValue(
+            "achievementsSection",
+            achievements
+        )
+    ) {
+
+        setText(
+            "playerAchievements",
+            achievements
+        );
+
+    }
+
+}
+
+
+/* =========================================================
+   TRAINING & DEVELOPMENT
+   ========================================================= */
+
+function renderTraining() {
+
+    const personal =
+        getValue(
+            careerData.footballPersonalTraining
+        );
+
+    const team =
+        getValue(
+            careerData.footballTeamTraining
+        );
+
+    const focus =
+        getValue(
+            careerData.footballTrainingFocus
+        );
+
+
+    const parts = [];
+
+
+    if (personal) {
+
+        parts.push(
+            "Personal Training: " +
+            personal
+        );
+
+    }
+
+
+    if (team) {
+
+        parts.push(
+            "Team Training: " +
+            team
+        );
+
+    }
+
+
+    if (focus) {
+
+        parts.push(
+            "Development Focus: " +
+            focus
+        );
+
+    }
+
+
+    const training =
+        parts.join("\n");
+
+
+    if (
+        showIfHasValue(
+            "trainingSection",
+            training
+        )
+    ) {
+
+        setText(
+            "trainingHighlights",
+            training
+        );
+
+    }
+
+}
+
+
+/* =========================================================
+   MATCH HIGHLIGHTS
+   ========================================================= */
+
+function renderMatchHighlights() {
+
+    const highlights =
+        getValue(
+            careerData.footballMatchHighlights
+        );
+
+
+    if (
+        showIfHasValue(
+            "matchHighlightsSection",
+            highlights
+        )
+    ) {
+
+        setText(
+            "matchHighlights",
+            highlights
+        );
+
+    }
+
+}
+
+
+/* =========================================================
+   RECRUITMENT
+   ========================================================= */
+
+function renderRecruitment() {
+
+    const trials =
+        getValue(
+            careerData.footballTrials
+        );
+
+    const availability =
+        getValue(
+            careerData.footballAvailability
+        );
+
+    const trialLocation =
+        getValue(
+            careerData.footballTrialLocation
+        );
+
+    const video =
+        getValue(
+            careerData.footballVideo
+        );
+
+    const references =
+        getValue(
+            careerData.footballReferences
+        );
+
+
+    const rows = [
+        [
+            "trialsRow",
+            "playerTrials",
+            trials
+        ],
+        [
+            "availabilityRow",
+            "playerAvailability",
+            availability
+        ],
+        [
+            "trialLocationRow",
+            "playerTrialLocation",
+            trialLocation
+        ],
+        [
+            "videoRow",
+            "playerVideo",
+            video
+        ],
+        [
+            "referencesRow",
+            "playerReferences",
+            references
+        ]
+    ];
+
+
+    let hasRecruitmentData = false;
+
+
+    rows.forEach(
+        ([rowId, textId, value]) => {
+
+            if (value) {
+
+                hasRecruitmentData = true;
+
+                showElement(rowId);
+
+                setText(
+                    textId,
+                    value
+                );
+
+            } else {
+
+                hideElement(rowId);
+
+            }
+
+        }
+    );
+
+
+    if (hasRecruitmentData) {
+
+        showElement(
+            "recruitmentSection"
+        );
+
+    } else {
+
+        hideElement(
+            "recruitmentSection"
+        );
+
+    }
+
+
+    /*
+       If a highlight video URL exists,
+       make it clickable.
+    */
+
+    if (video) {
+
+        const videoElement =
+            document.getElementById(
+                "playerVideo"
+            );
+
+
+        if (videoElement) {
+
+            const safeVideo =
+                sanitizeURL(video);
+
+
+            if (safeVideo) {
+
+                videoElement.innerHTML = `
+                    <a
+                        href="${safeVideo}"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style="
+                            color:#7b5d00;
+                            font-weight:800;
+                            text-decoration:none;
+                        "
+                    >
+                        View Highlight Video
+                    </a>
+                `;
+
+            } else {
+
+                videoElement.textContent =
+                    video;
+
+            }
+
+        }
+
+    }
+
+}
+
+
+/* =========================================================
+   FOOTBALL LINKS
+   ========================================================= */
+
+function renderLinks() {
+
+    const links =
+        splitList(
+            careerData.footballLinks
+        );
+
+
+    if (!links.length) {
+
+        hideElement(
+            "linksSection"
+        );
+
+        return;
+
+    }
+
+
+    showElement(
+        "linksSection"
+    );
+
+
+    const html =
+        links
+            .map(link => {
+
+                const safeURL =
+                    sanitizeURL(link);
+
+
+                if (!safeURL) {
+
+                    return `
+                        <div class="link-item">
+                            ${escapeHTML(link)}
+                        </div>
+                    `;
+
+                }
+
+
+                return `
+                    <a
+                        class="link-item"
+                        href="${safeURL}"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                    >
+                        ${escapeHTML(link)}
+                    </a>
+                `;
+
+            })
+            .join("");
+
+
+    setHTML(
+        "playerLinks",
+        html
+    );
+
+}
+
+
+/* =========================================================
+   SAFE URL HANDLING
+   ========================================================= */
+
+function sanitizeURL(url) {
+
+    if (!url) {
+        return "";
+    }
+
+
+    let value =
+        String(url).trim();
+
+
+    /*
+       Allow users to type:
+
+       example.com
+
+       instead of:
+
+       https://example.com
+    */
+
+    if (
+        !/^https?:\/\//i.test(value)
+    ) {
+
+        value =
+            "https://" + value;
+
+    }
+
+
+    try {
+
+        const parsed =
+            new URL(value);
+
+
+        if (
+            parsed.protocol !== "http:" &&
+            parsed.protocol !== "https:"
+        ) {
+            return "";
+        }
+
+
+        return parsed.href;
+
+    } catch (error) {
+
+        return "";
+
+    }
+
+}
+
+
+/* =========================================================
+   LANGUAGES
+   ========================================================= */
+
+function renderLanguages() {
+
+    const languages =
+        getValue(
+            careerData.footballLanguages
+        );
+
+
+    if (
+        showIfHasValue(
+            "languagesSection",
+            languages
+        )
+    ) {
+
+        setText(
+            "playerLanguages",
+            languages
+        );
+
+    }
+
+}
+
+
+/* =========================================================
+   FOOTBALL EDUCATION
+   ========================================================= */
+
+function renderFootballEducation() {
+
+    const education =
+        getValue(
+            careerData.footballEducation
+        );
+
+
+    if (
+        showIfHasValue(
+            "footballEducationSection",
+            education
+        )
+    ) {
+
+        setText(
+            "playerFootballEducation",
+            education
+        );
+
+    }
+
+}
+
+
+/* =========================================================
+   NORMAL CV RENDERING
+   ========================================================= */
+
+function renderNormalCV() {
+
+    hideElement(
+        "footballCV"
+    );
+
+    showElement(
+        "normalCV"
+    );
+
+
+    setText(
+        "normalName",
+        currentCV.full_name ||
+        "Your Name"
+    );
+
+
+    setText(
+        "normalTitle",
+        currentCV.professional_title ||
+        "Professional"
+    );
+
+
+    const contactParts = [
+        currentCV.email,
+        currentCV.phone,
+        currentCV.location
+    ]
+    .filter(Boolean);
+
+
+    setText(
+        "normalContact",
+        contactParts.join(" • ")
+    );
+
+
+    const summary =
+        getValue(
+            currentCV.summary
+        );
+
+
+    if (summary) {
+
+        showElement(
+            "normalSummarySection"
+        );
+
+        setText(
+            "normalSummary",
+            summary
+        );
+
+    }
+
+
+    const education =
+        getValue(
+            currentCV.education
+        );
+
+
+    if (education) {
+
+        showElement(
+            "normalEducationSection"
+        );
+
+        setText(
+            "normalEducation",
+            education
+        );
+
+    }
+
+
+    const experience =
+        getValue(
+            currentCV.experience
+        );
+
+
+    if (experience) {
+
+        showElement(
+            "normalExperienceSection"
+        );
+
+        setText(
+            "normalExperience",
+            experience
+        );
+
+    }
+
+
+    const skills =
+        getValue(
+            currentCV.skills
+        );
+
+
+    if (skills) {
+
+        showElement(
+            "normalSkillsSection"
+        );
+
+        setText(
+            "normalSkills",
+            skills
+        );
+
+    }
+
+}
+
+
+/* =========================================================
+   FOOTBALL CV RENDERING
+   ========================================================= */
+
+function renderFootballCV() {
+
+    hideElement(
+        "normalCV"
+    );
+
+    showElement(
+        "footballCV"
+    );
+
+
+    loadPlayerPhoto();
+
+    renderPlayerInformation();
+
+    renderProfile();
+
+    renderStrengths();
+
+    renderQualities();
+
+    renderStatistics();
+
+    renderPlayingStyle();
+
+    renderAttributes();
+
+    renderCareerTimeline();
+
+    renderCompetitions();
+
+    renderAchievements();
+
+    renderTraining();
+
+    renderMatchHighlights();
+
+    renderRecruitment();
+
+    renderLinks();
+
+    renderLanguages();
+
+    renderFootballEducation();
+
+}
+
+
+/* =========================================================
+   REMOVE EMPTY OPTIONAL SECTIONS
+   ========================================================= */
+
+function cleanEmptySections() {
+
+    const sections =
+        document.querySelectorAll(
+            ".cv-section"
+        );
+
+
+    sections.forEach(section => {
+
+        const visibleChildren =
+            Array.from(
+                section.children
+            )
+            .filter(
+                child =>
+                    !child.classList.contains(
+                        "section-heading"
+                    ) &&
+                    !child.classList.contains(
+                        "hidden"
+                    )
+            );
+
+
+        /*
+           Do not automatically hide a section
+           simply because its content is visually
+           small. Individual render functions
+           already control optional sections.
+        */
+
+        if (
+            visibleChildren.length === 0
+        ) {
+
+            /*
+               Keep profile/statistics etc.
+               under their own control.
+            */
+
+        }
+
+    });
+
+}
+
+
+/* =========================================================
+   RENDER EVERYTHING
+   ========================================================= */
+
+function renderCV() {
+
+    if (!currentCV) {
+        return;
+    }
+
+
+    if (
+        selectedCareer === "football"
+    ) {
+
+        renderFootballCV();
+
+    } else {
+
+        renderNormalCV();
+
+    }
+
+
+    cleanEmptySections();
+
+}
+
+
+/* =========================================================
+   PAGE INITIALIZATION
+   ========================================================= */
+
+async function initializePreview() {
+
+    try {
+
+        const loaded =
+            await loadCV();
+
+
+        if (!loaded) {
+            return;
+        }
+
+
+        renderCV();
+
+
+    } catch (error) {
+
+        console.error(
+            "Preview initialization error:",
+            error
+        );
+
+
+        alert(
+            "Something went wrong while loading the CV preview."
+        );
+
+    }
+
+}
+
+
+/* =========================================================
+   AUTH STATE
+   ========================================================= */
+
+supabaseClient.auth.onAuthStateChange(
+    (event, session) => {
+
+        if (
+            event === "SIGNED_OUT"
+        ) {
+
+            window.location.href =
+                "auth.html?mode=login";
+
+        }
+
+    }
+);
+
+
+/* =========================================================
+   START
+   ========================================================= */
+
+if (
+    document.readyState === "loading"
+) {
+
+    document.addEventListener(
+        "DOMContentLoaded",
+        initializePreview
+    );
+
+} else {
+
+    initializePreview();
+
+}
+
+</script>
+
+</body>
+</html>
